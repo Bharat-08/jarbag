@@ -22,7 +22,9 @@ app.use('/uploads', express.static('uploads'));
 
 app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
+app.use('/api/news', newsRoutes);
 app.use('/api/mentors', mentorRoutes);
+app.use('/api/content', require('./routes/content'));
 
 app.get('/', (req, res) => {
     res.send('Server is running');
