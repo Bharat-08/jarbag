@@ -90,4 +90,30 @@ router.post('/register', upload, async (req, res) => {
     }
 });
 
+// List Mentors (Public or Candidate)
+router.get('/list', async (req, res) => {
+    try {
+        const mentors = await prisma.user.findMany({
+            where: { role: 'MENTOR' },
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                expertise: true,
+                rank: true,
+                yearsOfExperience: true,
+                rating: true,
+                reviewCount: true,
+                price: true,
+                bio: true,
+                profileImage: true
+            }
+        });
+        res.json({ mentors });
+    } catch (error) {
+        console.error("Fetch Mentors Error:", error);
+        res.status(500).json({ message: "Failed to fetch mentors" });
+    }
+});
+
 module.exports = router;

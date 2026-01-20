@@ -28,6 +28,15 @@ model User {
   role          Role           @default(CANDIDATE)
   expertise     String?
   documentUrl   String?
+  isPremium     Boolean        @default(false)
+  // Mentor Profile Fields
+  yearsOfExperience Int?
+  rating            Float?    @default(5.0)
+  reviewCount       Int?      @default(0)
+  price             Int?      @default(999)
+  bio               String?
+  rank              String?
+  profileImage      String?
   refreshTokens RefreshToken[]
 }
 
