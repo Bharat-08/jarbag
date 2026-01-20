@@ -1,0 +1,146 @@
+/* RESET */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: Inter, sans-serif;
+}
+
+body {
+    background: radial-gradient(circle at top, #2a0000, #000);
+    color: #fff;
+}
+
+/* PAGE */
+.candidate-home {
+    min-height: 100vh;
+}
+
+/* TOP NAVBAR */
+.top-navbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 40px;
+}
+
+.top-links {
+    list-style: none;
+    display: flex;
+    gap: 28px;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.filter-input {
+    width: 360px;
+    padding: 10px 14px;
+    border-radius: 8px;
+    border: none;
+    outline: none;
+    color: black;
+}
+
+.top-avatar {
+    width: 45px;
+    height: 45px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+}
+
+/* SUB NAV */
+.sub-navbar {
+    display: flex;
+    justify-content: center;
+    gap: 18px;
+    background: rgba(255, 255, 255, 0.15);
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* HERO */
+.hero-banner img {
+    width: 100%;
+    height: 250px;
+    object-fit: cover;
+    display: block;
+}
+
+/* TITLE */
+.page-title {
+    text-align: center;
+    margin: 50px 0 40px;
+    font-size: 36px;
+    font-weight: 700;
+}
+
+/* CATEGORY SECTION */
+.category-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 30px;
+    padding: 0 60px 60px;
+    max-width: 1300px;
+    margin: auto;
+}
+
+/* CARD */
+.category-card {
+    background: #111;
+    border-radius: 22px;
+    overflow: hidden;
+    text-align: center;
+    transition: transform 0.3s ease;
+}
+
+.category-card:hover {
+    transform: translateY(-5px);
+}
+
+.category-card img {
+    width: 100%;
+    height: 240px;
+    object-fit: cover;
+}
+
+/* BUTTONS */
+.btn {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.practice {
+    background: #1fa31f;
+    color: #fff;
+}
+
+.test {
+    background: #ff6b6b;
+    color: #fff;
+}
+
+.training {
+    background: #5b7bb2;
+    color: #fff;
+}
+
+/* RESPONSIVE */
+@media (max-width: 900px) {
+    .top-navbar {
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .filter-input {
+        width: 100%;
+    }
+
+    .category-section {
+        padding: 0 20px 40px;
+    }
+}

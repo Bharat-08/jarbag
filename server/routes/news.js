@@ -1,85 +1,125 @@
 const express = require('express');
 const axios = require('axios');
-const cheerio = require('cheerio');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { parseStringPromise } = require('xml2js');
 
 const router = express.Router();
 
-// Initialize Gemini
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+/* ---------------- SAFE HTML ESCAPE ---------------- */
+function escapeHTML(str = "") {
+    return str
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+}
 
-router.get('/', async (req, res) => {
+/* ---------------- FETCH PIB RSS (ENGLISH – WORKING) ---------------- */
+async function fetchPIB() {
+    const rssUrl = "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1";
+
+    const { data } = await axios.get(rssUrl, {
+        headers: {
+            "User-Agent": "Mozilla/5.0",
+            Accept: "application/rss+xml"
+        },
+        timeout: 15000
+    });
+
+    const parsed = await parseStringPromise(data);
+    const items = parsed?.rss?.channel?.[0]?.item || [];
+
+    return items.map(item => ({
+        title: item?.title?.[0] || "Untitled",
+        description: item?.description?.[0] || "",
+        link: item?.link?.[0] || "#",
+        publishedAt: item?.pubDate?.[0] || ""
+    }));
+}
+
+/* ---------------- API (JSON) ---------------- */
+// Mounted at /api/news
+router.get("/", async (req, res) => {
     try {
-        // 1. Fetch raw HTML from PIB
-        const url = 'https://www.pib.gov.in/indexd.aspx?reg=3&lang=1';
-        const { data } = await axios.get(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-            }
+        const news = await fetchPIB();
+
+        res.json({
+            source: "Press Information Bureau, Government of India",
+            language: "English",
+            total: news.length,
+            updates: news
         });
+    } catch (err) {
+        console.error("API ERROR:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
 
-        // 2. Clean HTML to reduce token usage (remove scripts, styles, etc.)
-        const $ = cheerio.load(data);
-        $('script').remove();
-        $('style').remove();
-        $('nav').remove();
-        $('footer').remove();
-        $('header').remove();
+/* ---------------- HTML VIEW ---------------- */
+// Mounted at /api/news/view
+router.get("/view", async (req, res) => {
+    try {
+        const news = await fetchPIB();
 
-        // Get the relevant body text
-        // limit to ~30k chars to stay well within safety margins while keeping context
-        const cleanText = $('body').text().replace(/\s+/g, ' ').trim().substring(0, 30000);
+        const cards = news.map(n => `
+      <div class="card">
+        <h3>${escapeHTML(n.title)}</h3>
+        <p>${escapeHTML(n.description || "No description available.")}</p>
+        <a href="${n.link}" target="_blank">Read full release →</a>
+      </div>
+    `).join("");
 
-        // 3. Use Gemini to identifying and summarize
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const prompt = `
-      You are an AI assistant for a Defence Education platform.
-      
-      I have fetched the raw text content from the Press Information Bureau (PIB) website (Ministry of Defence section).
-      
-      Your task is to:
-      1. Analyze the text below.
-      2. Identify the specific news items/headlines related to "Daily Defence Updates" for today or the most recent date available.
-      3. Create a concise, professional summary of these updates.
-      
-      Rules:
-      - Focus ONLY on Defence-related news.
-      - Ignore navigation menus, footers, and generic site text.
-      - Format the output in clean Markdown.
-      - Use a title: "## Daily Defence Updates"
-      - Use bullet points for different news items.
-      - If no specific news is found, reply with "No major defence updates reported at this time."
-      
-      Raw Website Text:
-      ${cleanText}
-    `;
-
-        // Retry logic for 503 Service Unavailable (Model Overloaded)
-        let text = '';
-        let retries = 3;
-        while (retries > 0) {
-            try {
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                text = response.text();
-                break; // Success, exit loop
-            } catch (err) {
-                if (err.message.includes('503') || err.message.includes('overloaded')) {
-                    console.log(`Gemini 503 Overloaded. Retrying... (${3 - retries + 1}/3)`);
-                    retries--;
-                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s
-                    if (retries === 0) throw err; // Throw if last retry
-                } else {
-                    throw err; // Throw other errors immediately
-                }
-            }
-        }
-
-        res.json({ summary: text });
-
-    } catch (error) {
-        console.error('News Error Details:', error);
-        res.status(500).json({ message: 'Failed to fetch news', error: error.message });
+        res.send(`
+      <!DOCTYPE html>
+      <html lang="en">
+      <head>
+        <meta charset="UTF-8">
+        <title>PIB Daily Highlights</title>
+        <style>
+          body {
+            font-family: Arial, sans-serif;
+            background: #f4f6f8;
+            padding: 30px;
+          }
+          h1 {
+            margin-bottom: 6px;
+          }
+          .sub {
+            color: #555;
+            margin-bottom: 25px;
+          }
+          .card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+          }
+          .card h3 {
+            margin-top: 0;
+            color: #0a58ca;
+          }
+          .card p {
+            color: #333;
+            line-height: 1.6;
+          }
+          .card a {
+            text-decoration: none;
+            font-weight: bold;
+            color: #198754;
+          }
+        </style>
+      </head>
+      <body>
+        <h1>PIB Daily Highlights</h1>
+        <div class="sub">
+          ${new Date().toDateString()} | Press Information Bureau, Government of India
+        </div>
+        ${cards || "<p>No updates available.</p>"}
+      </body>
+      </html>
+    `);
+    } catch (err) {
+        console.error("VIEW ERROR:", err.message);
+        res.status(500).send("Failed to render PIB view");
     }
 });
 
