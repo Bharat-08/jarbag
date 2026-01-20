@@ -4,29 +4,20 @@ const { parseStringPromise } = require('xml2js');
 
 const router = express.Router();
 
-/* ---------------- SAFE HTML ESCAPE ---------------- */
+// Helper for HTML escaping
 function escapeHTML(str = "") {
-    return str
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;");
+    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
 }
 
-/* ---------------- FETCH PIB RSS (ENGLISH – WORKING) ---------------- */
+// PIB Fetcher logic
 async function fetchPIB() {
     const rssUrl = "https://pib.gov.in/RssMain.aspx?ModId=6&Lang=1";
-
     const { data } = await axios.get(rssUrl, {
-        headers: {
-            "User-Agent": "Mozilla/5.0",
-            Accept: "application/rss+xml"
-        },
+        headers: { "User-Agent": "Mozilla/5.0", Accept: "application/rss+xml" },
         timeout: 15000
     });
-
     const parsed = await parseStringPromise(data);
     const items = parsed?.rss?.channel?.[0]?.item || [];
-
     return items.map(item => ({
         title: item?.title?.[0] || "Untitled",
         description: item?.description?.[0] || "",
@@ -36,8 +27,8 @@ async function fetchPIB() {
 }
 
 /* ---------------- API (JSON) ---------------- */
-// Mounted at /api/news
-router.get("/", async (req, res) => {
+// Mounted at /api/news/pib
+router.get("/pib", async (req, res) => {
     try {
         const news = await fetchPIB();
 
@@ -74,38 +65,13 @@ router.get("/view", async (req, res) => {
         <meta charset="UTF-8">
         <title>PIB Daily Highlights</title>
         <style>
-          body {
-            font-family: Arial, sans-serif;
-            background: #f4f6f8;
-            padding: 30px;
-          }
-          h1 {
-            margin-bottom: 6px;
-          }
-          .sub {
-            color: #555;
-            margin-bottom: 25px;
-          }
-          .card {
-            background: #fff;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 16px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-          }
-          .card h3 {
-            margin-top: 0;
-            color: #0a58ca;
-          }
-          .card p {
-            color: #333;
-            line-height: 1.6;
-          }
-          .card a {
-            text-decoration: none;
-            font-weight: bold;
-            color: #198754;
-          }
+          body { font-family: Arial, sans-serif; background: #f4f6f8; padding: 30px; }
+          h1 { margin-bottom: 6px; }
+          .sub { color: #555; margin-bottom: 25px; }
+          .card { background: #fff; padding: 20px; border-radius: 10px; margin-bottom: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.08); }
+          .card h3 { margin-top: 0; color: #0a58ca; }
+          .card p { color: #333; line-height: 1.6; }
+          .card a { text-decoration: none; font-weight: bold; color: #198754; }
         </style>
       </head>
       <body>
