@@ -80,3 +80,13 @@ model Video {
   url       String
   createdAt DateTime @default(now())
 }
+
+model TATImage {
+  id           Int      @id @default(autoincrement())
+  url          String
+  description1 String
+  description2 String
+  description3 String
+  createdAt    DateTime @default(now())
+}
+

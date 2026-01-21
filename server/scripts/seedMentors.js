@@ -6,105 +6,79 @@ const prisma = new PrismaClient();
 async function main() {
     console.log('Seeding Mentors...');
 
+    const password = await bcrypt.hash('password123', 10);
+
     const mentors = [
         {
-            name: "Maj Arjun Singh (Retd.)",
-            email: "arjun.singh@example.com",
-            expertise: "GTO & Psychology",
-            rank: "Major",
-            yearsOfExperience: 10,
-            rating: 5.0,
-            reviewCount: 250,
-            price: 999,
-            bio: "Nation First, Always. Proud to have served my country. Sharing stories of courage & camaraderie.",
-            profileImage: "https://ui-avatars.com/api/?name=Arjun+Singh&background=0D8ABC&color=fff"
-        },
-        {
-            name: "Lt Col Shlok Sharma (Retd.)",
-            email: "shlok.sharma@example.com",
-            expertise: "GTO & Psychology",
-            rank: "Lt Colonel",
-            yearsOfExperience: 15,
-            rating: 4.8,
-            reviewCount: 180,
-            price: 999,
-            bio: "Expert in GTO tasks and psychological assessment. Guiding future leaders.",
-            profileImage: "https://ui-avatars.com/api/?name=Shlok+Sharma&background=2E7D32&color=fff"
-        },
-        {
-            name: "Col R. L. Gupta (Retd.)",
-            email: "rl.gupta@example.com",
-            expertise: "Interviewing Officer",
-            rank: "Colonel",
+            email: 'mentor1@example.com',
+            name: 'Col. Rathore',
+            role: 'MENTOR',
+            password: password,
+            expertise: 'Psychology & Interview',
             yearsOfExperience: 25,
             rating: 4.9,
-            reviewCount: 300,
-            price: 1499,
-            bio: "Former IO with extensive experience in selection boards. Mastering the interview technique.",
-            profileImage: "https://ui-avatars.com/api/?name=RL+Gupta&background=C62828&color=fff"
-        },
-        {
-            name: "Maj Vijayata (Retd.)",
-            email: "vijayata@example.com",
-            expertise: "GTO & Psychology",
-            rank: "Major",
-            yearsOfExperience: 8,
-            rating: 5.0,
             reviewCount: 120,
-            price: 999,
-            bio: "Breaking barriers. Specializing in women entry schemes and psychology.",
-            profileImage: "https://ui-avatars.com/api/?name=Maj+Vijayata&background=F9A825&color=fff"
+            price: 1500,
+            bio: 'Retired Colonel with 25 years of service. Ex-IO at 14 SSB Allahabad. Expert in psychological assessment and personal interviews.',
+            rank: 'Colonel',
+            profileImage: 'https://randomuser.me/api/portraits/men/32.jpg',
+            isPremium: true
         },
         {
-            name: "Capt. Mohit Tripathi (Retd.)",
-            email: "mohit.tripathi@example.com",
-            expertise: "GTO",
-            rank: "Captain",
-            yearsOfExperience: 6,
+            email: 'mentor2@example.com',
+            name: 'Maj. Gen. Sharma',
+            role: 'MENTOR',
+            password: password,
+            expertise: 'GTO & Strategy',
+            yearsOfExperience: 30,
+            rating: 5.0,
+            reviewCount: 85,
+            price: 2000,
+            bio: 'Former GTO with extensive experience in group dynamics and task solving strategies.',
+            rank: 'Major General',
+            profileImage: 'https://randomuser.me/api/portraits/men/45.jpg',
+            isPremium: true
+        },
+        {
+            email: 'mentor3@example.com',
+            name: 'Lt. Cdr. Priya',
+            role: 'MENTOR',
+            password: password,
+            expertise: 'Personal Interview & Communication',
+            yearsOfExperience: 12,
+            rating: 4.8,
+            reviewCount: 200,
+            price: 1200,
+            bio: 'Specialist in communication skills and personality development for defence aspirants.',
+            rank: 'Lt. Commander',
+            profileImage: 'https://randomuser.me/api/portraits/women/44.jpg',
+            isPremium: true
+        },
+        {
+            email: 'mentor4@example.com',
+            name: 'Capt. Vikram',
+            role: 'MENTOR',
+            password: password,
+            expertise: 'Physical Conditioning & GTO',
+            yearsOfExperience: 8,
             rating: 4.7,
-            reviewCount: 90,
-            price: 799,
-            bio: "Young and dynamic GTO guidance. Focus on group dynamics and leadership.",
-            profileImage: "https://ui-avatars.com/api/?name=Mohit+Tripathi&background=1565C0&color=fff"
+            reviewCount: 95,
+            price: 1000,
+            bio: 'Focuses on physical endurance and obstacle courses. Hands-on training approach.',
+            rank: 'Captain',
+            profileImage: 'https://randomuser.me/api/portraits/men/22.jpg',
+            isPremium: true
         }
     ];
 
-    const password = await bcrypt.hash('mentor123', 10);
-
     for (const mentor of mentors) {
-        // Upsert to avoid duplicates
-        await prisma.user.upsert({
+        const user = await prisma.user.upsert({
             where: { email: mentor.email },
-            update: {
-                role: 'MENTOR',
-                expertise: mentor.expertise,
-                rank: mentor.rank,
-                yearsOfExperience: mentor.yearsOfExperience,
-                rating: mentor.rating,
-                reviewCount: mentor.reviewCount,
-                price: mentor.price,
-                bio: mentor.bio,
-                profileImage: mentor.profileImage
-            },
-            create: {
-                email: mentor.email,
-                name: mentor.name,
-                password,
-                role: 'MENTOR',
-                expertise: mentor.expertise,
-                rank: mentor.rank,
-                yearsOfExperience: mentor.yearsOfExperience,
-                rating: mentor.rating,
-                reviewCount: mentor.reviewCount,
-                price: mentor.price,
-                bio: mentor.bio,
-                profileImage: mentor.profileImage
-            }
+            update: {},
+            create: mentor,
         });
-        console.log(`Upserted ${mentor.name}`);
+        console.log(`Created mentor: ${user.name}`);
     }
-
-    console.log('Seeding completed.');
 }
 
 main()

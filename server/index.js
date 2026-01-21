@@ -28,6 +28,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/news', newsRoutes);
 app.use('/api/mentors', mentorRoutes);
 app.use('/api/content', contentRoutes);
+app.use('/api/tat', require('./routes/tat'));
 
 app.get('/', (req, res) => {
     res.send('Server is running');

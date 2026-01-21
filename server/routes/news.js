@@ -44,6 +44,23 @@ router.get("/pib", async (req, res) => {
     }
 });
 
+// Mounted at /api/news/
+router.get("/", async (req, res) => {
+    try {
+        const news = await fetchPIB();
+
+        res.json({
+            source: "Press Information Bureau, Government of India",
+            language: "English",
+            total: news.length,
+            updates: news
+        });
+    } catch (err) {
+        console.error("API ERROR:", err.message);
+        res.status(500).json({ error: err.message });
+    }
+});
+
 /* ---------------- HTML VIEW ---------------- */
 // Mounted at /api/news/view
 router.get("/view", async (req, res) => {
@@ -53,7 +70,7 @@ router.get("/view", async (req, res) => {
         const cards = news.map(n => `
       <div class="card">
         <h3>${escapeHTML(n.title)}</h3>
-        <p>${escapeHTML(n.description || "No description available.")}</p>
+        <p>${escapeHTML(n.description || "")}</p>
         <a href="${n.link}" target="_blank">Read full release →</a>
       </div>
     `).join("");
