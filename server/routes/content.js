@@ -16,7 +16,7 @@ const verifyAdmin = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await prisma.user.findUnique({ where: { id: decoded.id } }); // decoded.id based on generateAccessToken
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
         if (!user || user.role !== 'ADMIN') {
             return res.status(403).json({ error: "Forbidden: Admins only" });
         }
@@ -36,8 +36,25 @@ router.post('/upload', verifyAdmin, async (req, res) => {
     }
 
     try {
+        // Helper to ensure URLs are embeddable (e.g. convert Vimeo standard to Player)
+        const cleanUrl = (url) => {
+            if (!url) return url;
+            // Clean Vimeo URLs
+            if (url.includes('vimeo.com')) {
+                // If it's already a player link, leave it
+                if (url.includes('player.vimeo.com')) return url;
+
+                const match = url.match(/vimeo\.com\/(\d+)/);
+                if (match && match[1]) {
+                    return `https://player.vimeo.com/video/${match[1]}`;
+                }
+                return url.split('?')[0]; // Fallback to stripping query params
+            }
+            return url;
+        };
+
         const createdVideos = await prisma.$transaction(
-            links.map(link => prisma.video.create({ data: { url: link } }))
+            links.map(link => prisma.video.create({ data: { url: cleanUrl(link) } }))
         );
         res.json({ message: "Videos uploaded successfully", count: createdVideos.length });
     } catch (err) {
@@ -57,7 +74,7 @@ const verifyUser = async (req, res, next) => {
 
     try {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const user = await prisma.user.findUnique({ where: { id: decoded.id } }); // decoded.id based on generateAccessToken
+        const user = await prisma.user.findUnique({ where: { id: decoded.id } });
         if (!user) {
             return res.status(403).json({ error: "User not found" });
         }
@@ -71,38 +88,41 @@ const verifyUser = async (req, res, next) => {
 // View Videos (Candidates)
 router.get('/view', verifyUser, async (req, res) => {
     try {
-        // Fetch videos ordered by creation
+        // Fetch videos ordered by creation ASC (Oldest first = Module 1, Module 2...)
         const videos = await prisma.video.findMany({
-            orderBy: { createdAt: 'desc' } // or 'asc' depending on desired order, usually new first is good, but for "lectures" maybe old first? Let's stick to desc for now as per admin list.
+            orderBy: { createdAt: 'asc' }
         });
 
-        const isPremium = req.user.isPremium === true; // Ensure boolean
+        const isPremium = req.user.isPremium === true;
         const role = req.user.role;
 
         // Admins see all
         if (role === 'ADMIN') {
-            return res.json({ videos, accessLevel: 'ADMIN' });
+            return res.json({
+                videos: videos.map(v => ({ ...v, locked: false })),
+                accessLevel: 'ADMIN'
+            });
         }
 
         if (isPremium) {
-            return res.json({ videos, accessLevel: 'PREMIUM' });
+            // Premium users: All videos unlocked
+            return res.json({
+                videos: videos.map(v => ({ ...v, locked: false })),
+                accessLevel: 'PREMIUM'
+            });
         } else {
-            // Free users get only the first video (latest? or earliest? The requirements said "first video".
-            // If we order by 'desc', first is latest. If 'asc', first is oldest.
-            // Usually "Lecture 1" is oldest. Let's flip `orderBy` here to 'asc' for candidates if it's a course?
-            // "List of videos will appear... first video available" implies sequence.
-            // Let's reload videos ordered by ID or createdAt ASC for the view.
-
-            // Re-fetching sorted ASC for better UX if it's a sequence
-            const sequenceVideos = await prisma.video.findMany({
-                orderBy: { createdAt: 'asc' }
+            // Free users: First video unlocked, others locked (URL hidden)
+            const processedVideos = videos.map((video, index) => {
+                if (index === 0) {
+                    // First video unlocked
+                    return { ...video, locked: false };
+                } else {
+                    // Subsequent videos locked
+                    return { ...video, url: null, locked: true };
+                }
             });
 
-            if (isPremium) {
-                return res.json({ videos: sequenceVideos, accessLevel: 'PREMIUM' });
-            } else {
-                return res.json({ videos: sequenceVideos.slice(0, 1), accessLevel: 'FREE' });
-            }
+            return res.json({ videos: processedVideos, accessLevel: 'FREE' });
         }
     } catch (err) {
         console.error("View Error:", err);
@@ -110,11 +130,11 @@ router.get('/view', verifyUser, async (req, res) => {
     }
 });
 
-// List Videos (Admin only for now to manage uploads)
+// List Videos (Admin only)
 router.get('/list', verifyAdmin, async (req, res) => {
     try {
         const videos = await prisma.video.findMany({
-            orderBy: { createdAt: 'desc' }
+            orderBy: { createdAt: 'desc' } // Admins might want to see newest uploads first
         });
         res.json({ videos });
     } catch (err) {

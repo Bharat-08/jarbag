@@ -21,6 +21,56 @@ const generateRefreshToken = () => {
     return crypto.randomBytes(40).toString('hex');
 };
 
+// Middleware to verify token for protected routes (like upgrade)
+const verifyToken = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith('Bearer ')) {
+        return res.status(401).json({ message: 'Unauthorized: No token provided' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        req.userId = decoded.id; // Store user ID for the route to use
+        next();
+    } catch (error) {
+        return res.status(403).json({ message: 'Invalid or expired token' });
+    }
+};
+
+// --- ROUTES ---
+
+// Mock Upgrade Route (Sets isPremium to true)
+router.post('/upgrade', verifyToken, async (req, res) => {
+    try {
+        // Update the user's premium status
+        const updatedUser = await prisma.user.update({
+            where: { id: req.userId },
+            data: { isPremium: true } // Matches schema field
+        });
+
+        // Generate a new access token to reflect the premium status immediately
+        const newAccessToken = generateAccessToken(updatedUser);
+
+        res.json({
+            success: true,
+            message: "Upgraded to Premium successfully!",
+            user: {
+                id: updatedUser.id,
+                email: updatedUser.email,
+                name: updatedUser.name,
+                role: updatedUser.role,
+                isPremium: updatedUser.isPremium
+            },
+            accessToken: newAccessToken
+        });
+    } catch (err) {
+        console.error("Upgrade failed:", err);
+        res.status(500).json({ message: "Failed to upgrade user" });
+    }
+});
+
 // Signup
 router.post('/signup', async (req, res) => {
     try {
@@ -64,7 +114,7 @@ router.post('/signup', async (req, res) => {
         });
 
         res.status(201).json({
-            user: { id: user.id, email: user.email, name: user.name, role: user.role },
+            user: { id: user.id, email: user.email, name: user.name, role: user.role, isPremium: user.isPremium },
             accessToken
         });
     } catch (error) {
@@ -106,7 +156,7 @@ router.post('/login', async (req, res) => {
         });
 
         res.status(200).json({
-            user: { id: user.id, email: user.email, name: user.name, role: user.role },
+            user: { id: user.id, email: user.email, name: user.name, role: user.role, isPremium: user.isPremium },
             accessToken
         });
     } catch (error) {
@@ -153,9 +203,16 @@ router.post('/refresh', async (req, res) => {
 
         const newAccessToken = generateAccessToken(storedToken.user);
 
-        // Optional: Rotate refresh token here for extra security (not crucial for this step)
-
-        res.json({ accessToken: newAccessToken, user: { id: storedToken.user.id, email: storedToken.user.email, name: storedToken.user.name, role: storedToken.user.role } });
+        res.json({
+            accessToken: newAccessToken,
+            user: {
+                id: storedToken.user.id,
+                email: storedToken.user.email,
+                name: storedToken.user.name,
+                role: storedToken.user.role,
+                isPremium: storedToken.user.isPremium
+            }
+        });
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -178,7 +235,15 @@ router.get('/me', async (req, res) => {
 
         if (!user) return res.status(401).json({ message: 'User not found' });
 
-        res.status(200).json({ user: { id: user.id, email: user.email, name: user.name, role: user.role } });
+        res.status(200).json({
+            user: {
+                id: user.id,
+                email: user.email,
+                name: user.name,
+                role: user.role,
+                isPremium: user.isPremium
+            }
+        });
     } catch (error) {
         return res.status(403).json({ message: 'Invalid token' });
     }

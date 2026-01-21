@@ -38,6 +38,32 @@ model User {
   rank              String?
   profileImage      String?
   refreshTokens RefreshToken[]
+  mentorshipSlots MentorshipSlot[]
+  courses       Course[]
+}
+
+model MentorshipSlot {
+  id        Int      @id @default(autoincrement())
+  mentorId  Int
+  mentor    User     @relation(fields: [mentorId], references: [id])
+  date      DateTime // Date of the slot
+  startTime String   // "10:00 AM"
+  endTime   String   // "11:00 AM"
+  duration  Int      // Duration in minutes (e.g., 60)
+  price     Int      // Price for this specific slot
+  isBooked  Boolean  @default(false)
+  createdAt DateTime @default(now())
+}
+
+model Course {
+  id          Int      @id @default(autoincrement())
+  mentorId    Int
+  mentor      User     @relation(fields: [mentorId], references: [id])
+  title       String
+  description String?
+  videoUrl    String
+  price       Int
+  createdAt   DateTime @default(now())
 }
 
 model RefreshToken {

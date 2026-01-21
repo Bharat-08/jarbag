@@ -116,4 +116,131 @@ router.get('/list', async (req, res) => {
     }
 });
 
+// --- MENTORSHIP SLOTS ---
+
+// Create Slot (Mentor Only)
+router.post('/slots', async (req, res) => {
+    try {
+        const { mentorId, date, startTime, endTime, duration, price } = req.body;
+        // In a real app, verify req.mentorId matches authenticated user or use middleware
+
+        const slot = await prisma.mentorshipSlot.create({
+            data: {
+                mentorId: parseInt(mentorId),
+                date: new Date(date),
+                startTime,
+                endTime,
+                duration: parseInt(duration),
+                price: parseInt(price)
+            }
+        });
+        res.status(201).json({ success: true, slot });
+    } catch (error) {
+        console.error("Create Slot Error:", error);
+        res.status(500).json({ message: "Failed to create slot" });
+    }
+});
+
+// Get Slots for a Mentor
+router.get('/slots/:mentorId', async (req, res) => {
+    try {
+        const { mentorId } = req.params;
+        const slots = await prisma.mentorshipSlot.findMany({
+            where: { mentorId: parseInt(mentorId) },
+            orderBy: { date: 'asc' }
+        });
+        res.json({ slots });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch slots" });
+    }
+});
+
+// Delete Slot
+router.delete('/slots/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        await prisma.mentorshipSlot.delete({
+            where: { id: parseInt(id) }
+        });
+        res.json({ success: true, message: "Slot deleted" });
+    } catch (error) {
+        console.error("Delete Slot Error:", error);
+        res.status(500).json({ message: "Failed to delete slot" });
+    }
+});
+
+// --- COURSES ---
+
+// Create Course (Mentor Only)
+router.post('/courses', async (req, res) => {
+    try {
+        const { mentorId, title, description, videoUrl, price } = req.body;
+
+        const course = await prisma.course.create({
+            data: {
+                mentorId: parseInt(mentorId),
+                title,
+                description,
+                videoUrl,
+                price: parseInt(price)
+            }
+        });
+        res.status(201).json({ success: true, course });
+    } catch (error) {
+        console.error("Create Course Error:", error);
+        res.status(500).json({ message: "Failed to upload course" });
+    }
+});
+
+// Get Courses for a Mentor
+router.get('/courses/:mentorId', async (req, res) => {
+    try {
+        const { mentorId } = req.params;
+        const courses = await prisma.course.findMany({
+            where: { mentorId: parseInt(mentorId) },
+            orderBy: { createdAt: 'desc' }
+        });
+        res.json({ courses });
+    } catch (error) {
+        res.status(500).json({ message: "Failed to fetch courses" });
+    }
+});
+
+// Get Single Mentor Profile
+router.get('/profile/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        console.log(`[DEBUG] Fetching profile for ID: ${id} (Type: ${typeof id})`);
+
+        const mentor = await prisma.user.findUnique({
+            where: { id: parseInt(id) },
+            select: {
+                id: true,
+                name: true,
+                // email: false, // Hide Email for privacy
+                expertise: true,
+                rank: true,
+                yearsOfExperience: true,
+                rating: true,
+                reviewCount: true,
+                price: true,
+                bio: true,
+                profileImage: true,
+                role: true // Make sure we select role to check it!
+            }
+        });
+        console.log(`[DEBUG] Found mentor:`, mentor);
+
+        if (!mentor || mentor.role !== 'MENTOR') {
+            console.log(`[DEBUG] Mentor check failed. Role: ${mentor?.role}`);
+            return res.status(404).json({ message: "Mentor not found" });
+        }
+
+        res.json({ mentor });
+    } catch (error) {
+        console.error("Fetch Mentor Profile Error:", error);
+        res.status(500).json({ message: "Failed to fetch mentor profile" });
+    }
+});
+
 module.exports = router;
