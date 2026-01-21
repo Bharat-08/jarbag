@@ -30,6 +30,7 @@ app.use('/api/mentors', mentorRoutes);
 app.use('/api/content', contentRoutes);
 app.use('/api/tat', require('./routes/tat'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/wat', require('./routes/wat'));
 
 app.get('/', (req, res) => {
     res.send('Server is running');
