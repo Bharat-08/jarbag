@@ -28,7 +28,10 @@ model User {
   role          Role           @default(CANDIDATE)
   expertise     String?
   documentUrl   String?
+
   isPremium     Boolean        @default(false)
+  subscriptionStartDate DateTime?
+  subscriptionEndDate   DateTime?
   // Mentor Profile Fields
   yearsOfExperience Int?
   rating            Float?    @default(5.0)
@@ -37,9 +40,29 @@ model User {
   bio               String?
   rank              String?
   profileImage      String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @default(now()) @updatedAt
   refreshTokens RefreshToken[]
   mentorshipSlots MentorshipSlot[]
   courses       Course[]
+  examResults   ExamResult[]
+}
+
+
+model ExamResult {
+  id          Int      @id @default(autoincrement())
+  examName    String
+  testType    String
+  score       Int?
+  total       Int      @default(0)
+  percentage  Float?
+  feedback    String?
+  createdAt   DateTime @default(now())
+  
+  responseDetails Json?
+  
+  userId      Int
+  user        User     @relation(fields: [userId], references: [id])
 }
 
 model MentorshipSlot {
@@ -88,5 +111,11 @@ model TATImage {
   description2 String
   description3 String
   createdAt    DateTime @default(now())
+}
+
+model WATWord {
+  id        Int      @id @default(autoincrement())
+  word      String   @unique
+  createdAt DateTime @default(now())
 }
 

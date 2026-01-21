@@ -44,10 +44,19 @@ const verifyToken = async (req, res, next) => {
 // Mock Upgrade Route (Sets isPremium to true)
 router.post('/upgrade', verifyToken, async (req, res) => {
     try {
+        // Calculate subscription dates (1 Year)
+        const startDate = new Date();
+        const endDate = new Date(startDate);
+        endDate.setFullYear(endDate.getFullYear() + 1);
+
         // Update the user's premium status
         const updatedUser = await prisma.user.update({
             where: { id: req.userId },
-            data: { isPremium: true } // Matches schema field
+            data: {
+                isPremium: true,
+                subscriptionStartDate: startDate,
+                subscriptionEndDate: endDate
+            }
         });
 
         // Generate a new access token to reflect the premium status immediately

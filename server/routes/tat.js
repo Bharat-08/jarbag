@@ -78,7 +78,7 @@ router.post('/evaluate', async (req, res) => {
         }
         `;
 
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
         const result = await model.generateContent(prompt);
         const responseText = result.response.text();
 
@@ -90,7 +90,10 @@ router.post('/evaluate', async (req, res) => {
 
     } catch (error) {
         console.error("TAT Evaluation Error:", error);
-        res.status(500).json({ error: "Evaluation failed" });
+        if (error.response) {
+            console.error("Gemini API Error Details:", error.response);
+        }
+        res.status(500).json({ error: "Evaluation failed", details: error.message });
     }
 });
 
