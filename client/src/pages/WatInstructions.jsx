@@ -2,24 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import UnifiedNavbar from '../components/UnifiedNavbar';
 import api from '../api/axios';
-import './TatInstructions.css';
+import './WatInstructions.css';
 
-export default function TatInstructions() {
+export default function WatInstructions() {
     const navigate = useNavigate();
-    const [numImages, setNumImages] = useState(2);
-    const [maxImages, setMaxImages] = useState(12); // Default fallback
+    const [numWords, setNumWords] = useState(60);
+    const [maxWords, setMaxWords] = useState(100); // Default fallback
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
 
     useEffect(() => {
         const fetchCount = async () => {
             try {
-                const res = await api.get('/tat/images');
+                const res = await api.get('/wat/words');
                 if (res.data && Array.isArray(res.data)) {
-                    setMaxImages(res.data.length);
+                    setMaxWords(res.data.length);
+                    // Adjust default if db has fewer words
+                    if (res.data.length < 60) setNumWords(res.data.length);
                 }
             } catch (err) {
-                console.error("Failed to fetch TAT images count", err);
+                console.error("Failed to fetch WAT words count", err);
             } finally {
                 setLoading(false);
             }
@@ -28,30 +30,30 @@ export default function TatInstructions() {
     }, []);
 
     const handleStart = () => {
-        const n = parseInt(numImages);
+        const n = parseInt(numWords);
         if (isNaN(n) || n < 1) {
             setError("Please enter a valid number (minimum 1).");
             return;
         }
-        if (n > maxImages) {
-            setError(`Only ${maxImages} images are available. Please reduce the count.`);
+        if (n > maxWords) {
+            setError(`Only ${maxWords} words are available. Please reduce the count.`);
             return;
         }
 
-        navigate('/test-mode/tat/active', {
-            state: { configImages: n }
+        navigate('/test-mode/wat/active', {
+            state: { configWords: n }
         });
     };
 
     return (
-        <div className="tat-inst-container">
+        <div className="wat-inst-container">
             <UnifiedNavbar />
 
             <div className="inst-content-wrapper">
                 <div className="inst-card">
                     <div className="inst-header">
-                        <h1 className="inst-title">Thematic Apperception Test</h1>
-                        <span className="inst-subtitle">Psychological Projection Assessment</span>
+                        <h1 className="inst-title">Word Association Test</h1>
+                        <span className="inst-subtitle">Psychological Reaction Assessment</span>
                     </div>
 
                     <div className="inst-grid">
@@ -62,22 +64,22 @@ export default function TatInstructions() {
                                 <li className="guide-item">
                                     <span className="guide-icon">1</span>
                                     <div className="guide-text">
-                                        <h4>Observe the Image</h4>
-                                        <p>You will be shown an ambiguous picture for 30 seconds. Observe the characters, setting, and mood carefully.</p>
+                                        <h4>Observe the Word</h4>
+                                        <p>A word will be displayed on the screen for 15 seconds. Read it carefully.</p>
                                     </div>
                                 </li>
                                 <li className="guide-item">
                                     <span className="guide-icon">2</span>
                                     <div className="guide-text">
-                                        <h4>Write a Story</h4>
-                                        <p>You have 4 minutes to write a story. Describe what led to the event, what is happening now, and the outcome.</p>
+                                        <h4>Type Response</h4>
+                                        <p>Type the very first thought or sentence that comes to your mind. Do not overthink.</p>
                                     </div>
                                 </li>
                                 <li className="guide-item">
                                     <span className="guide-icon">3</span>
                                     <div className="guide-text">
-                                        <h4>Be Spontaneous</h4>
-                                        <p>Do not overthink. Express your first thoughts, feelings, and reactions to the stimuli.</p>
+                                        <h4>Speed is Key</h4>
+                                        <p>The system will auto-advance after 15 seconds. If you finish early, press Enter.</p>
                                     </div>
                                 </li>
                             </ul>
@@ -86,18 +88,18 @@ export default function TatInstructions() {
                         {/* RIGHT: CONFIG & START */}
                         <div className="action-section">
                             <div className="config-box">
-                                <label className="config-label">Number of Images (Max: {maxImages})</label>
+                                <label className="config-label">Number of Words (Max: {maxWords})</label>
                                 <input
                                     type="number"
                                     className="config-input"
-                                    value={numImages}
+                                    value={numWords}
                                     onChange={(e) => {
-                                        setNumImages(e.target.value);
+                                        setNumWords(e.target.value);
                                         setError('');
                                     }}
                                     min="1"
-                                    max={maxImages}
-                                    placeholder={`1 - ${maxImages}`}
+                                    max={maxWords}
+                                    placeholder={`1 - ${maxWords}`}
                                 />
                                 {error && <p style={{ color: '#ef4444', fontSize: '0.85rem', marginTop: '5px' }}>{error}</p>}
                             </div>

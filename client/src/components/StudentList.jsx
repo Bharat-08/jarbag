@@ -5,15 +5,19 @@ import './StudentList.css';
 
 function StudentList() {
     const [students, setStudents] = useState([]);
-    const [filter, setFilter] = useState('all'); // 'all', 'premium', 'free'
+    const [loading, setLoading] = useState(true); // 1. Add loading state
+    const [filter, setFilter] = useState('all');
 
     useEffect(() => {
         const fetchStudents = async () => {
             try {
+                setLoading(true); // Ensure loading starts
                 const res = await api.get('/admin/students');
                 setStudents(res.data);
             } catch (err) {
                 console.error("Error fetching students", err);
+            } finally {
+                setLoading(false); // 2. Stop loading when fetch is done (success or fail)
             }
         };
         fetchStudents();
@@ -24,6 +28,11 @@ function StudentList() {
         if (filter === 'free') return !student.isPremium;
         return true;
     });
+
+    // 3. Add a loading check in the render
+    if (loading) {
+        return <div style={{ padding: '20px', color: '#fff', textAlign: 'center' }}>Loading students...</div>;
+    }
 
     return (
         <div className="student-section">
@@ -59,7 +68,6 @@ function StudentList() {
                         <div key={student.id} className="student-card">
                             <div className="student-header">
                                 <h3>{student.name || 'Unnamed'}</h3>
-                                {/* Logic for status badge based on isPremium or role */}
                                 <span className={`status-badge ${student.isPremium ? 'active' : 'inactive'}`}>
                                     {student.isPremium ? 'Premium' : 'Free'}
                                 </span>

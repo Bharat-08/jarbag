@@ -5,26 +5,20 @@ import UnifiedNavbar from '../components/UnifiedNavbar';
 import "./TestMode.css";
 // Reusing assets
 import heroImg from "../assets/hero_soldier.png";
-import testCard from "../assets/test_card.png"; // Fallback for TAT/WAT if specific ones not available
+import testCard from "../assets/test_card.png";
 import profilePlaceholder from "../assets/hero_emblem.png";
 
 export default function TestMode() {
     const navigate = useNavigate();
-    // const { user, logout } = useAuth();
-    // const [isMenuOpen, setIsMenuOpen] = useState(false);
 
     return (
         <div className="candidate-home">
             {/* UNIFIED NAVBAR */}
             <UnifiedNavbar />
 
-            {/* SUB NAV */}
-            {/* SUB NAV - Removed */}
-
             {/* HERO IMAGE */}
             <section className="hero-banner relative">
                 <img src={heroImg} alt="parade" />
-
             </section>
 
             {/* MAIN CONTENT */}
@@ -38,12 +32,12 @@ export default function TestMode() {
                             <img src={testCard} alt="TAT" />
                         </div>
                         <div className="test-footer-tat">
-                            THEMATIC APPRECIATION TEST (TAT)
+                            THEMATIC APPERCEPTION TEST (TAT)
                         </div>
                     </div>
 
-                    {/* WAT Card */}
-                    <div className="test-card-wrapper" onClick={() => navigate('/test-mode/wat/active')}>
+                    {/* WAT Card - CHANGED LINK TO INSTRUCTIONS PAGE */}
+                    <div className="test-card-wrapper" onClick={() => navigate('/test-mode/wat')}>
                         <div className="test-card-border bg-gray-700">
                             <img src={testCard} alt="WAT" />
                         </div>
@@ -53,7 +47,6 @@ export default function TestMode() {
                     </div>
                 </div>
             </div>
-
         </div>
     );
 }

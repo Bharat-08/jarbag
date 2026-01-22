@@ -30,8 +30,10 @@
     transition: color 0.2s;
 }
 
-.unified-links li:hover {
+.unified-links li:hover,
+.unified-links li.active {
     color: #fbbf24;
+    text-shadow: 0 0 10px rgba(251, 191, 36, 0.3);
 }
 
 /* PROFILE MENU */

@@ -1,6 +1,6 @@
-/* client/src/pages/TatInstructions.css */
+/* client/src/pages/WatInstructions.css */
 
-.tat-inst-container {
+.wat-inst-container {
     background: radial-gradient(circle at top, #2a0000, #000);
     min-height: 100vh;
     color: #e2e8f0;
@@ -61,7 +61,7 @@
     gap: 40px;
 }
 
-/* LEFT COLUMN: GUIDELINES */
+/* LEFT: GUIDE */
 .guide-section h3 {
     color: #fff;
     font-size: 1.5rem;
@@ -107,7 +107,7 @@
     line-height: 1.5;
 }
 
-/* RIGHT COLUMN: ACTION & CONFIG */
+/* RIGHT: ACTION */
 .action-section {
     background: rgba(255, 255, 255, 0.03);
     border-radius: 16px;

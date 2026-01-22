@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Landing from './pages/Landing';
 import Signup from './pages/Signup';
@@ -9,13 +9,14 @@ import MentorRegistration from './pages/MentorRegistration';
 
 // Candidate Pages
 import CandidateHome from './pages/CandidateHome';
-import Practice from './pages/Practice'; // Ensure Practice.jsx exists in ./pages/
+import Practice from './pages/Practice';
 
 // Test & Assessment Pages
 import TestMode from './pages/TestMode';
 import TatInstructions from './pages/TatInstructions';
 import TatTest from './pages/TatTest';
 import WatTest from './pages/WatTest';
+import WatInstructions from './pages/WatInstructions';
 import TestVimeo from './pages/TestVimeo';
 
 // Mentor/Admin Pages
@@ -25,15 +26,18 @@ import MentorDashboard from './pages/MentorDashboard';
 import MentorProfile from './pages/MentorProfile';
 import AdminDashboard from './pages/AdminDashboard';
 
+// UPDATED: Now capturing location to enable "Return to previous page"
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation(); // Capture where the user is trying to go
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
   if (!user) {
-    return <Navigate to="/login" replace />;
+    // Redirect to login, but save the current location in 'state.from'
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
@@ -41,13 +45,14 @@ const ProtectedRoute = ({ children }) => {
 
 const AdminRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
   if (!user || user.role !== 'ADMIN') {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
   return children;
@@ -55,22 +60,26 @@ const AdminRoute = ({ children }) => {
 
 const PublicOnlyRoute = ({ children }) => {
   const { user, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return <div>Loading...</div>;
   }
 
   if (user) {
+    if (location.state?.from) {
+      return <Navigate to={location.state.from} replace />;
+    }
+
     if (user.role === 'ADMIN') {
       return <Navigate to="/admin-dashboard" replace />;
     }
     if (user.role === 'CANDIDATE') {
-      return <Navigate to="/" replace />;
+      return <Navigate to="/candidate-home" replace />;
     }
     if (user.role === 'MENTOR') {
       return <Navigate to="/mentor-dashboard" replace />;
     }
-    // Default fallback
     return <Navigate to="/news" replace />;
   }
 
@@ -105,6 +114,7 @@ function App() {
           <Route path="/test-mode" element={<ProtectedRoute><TestMode /></ProtectedRoute>} />
           <Route path="/test-mode/tat" element={<ProtectedRoute><TatInstructions /></ProtectedRoute>} />
           <Route path="/test-mode/tat/active" element={<ProtectedRoute><TatTest /></ProtectedRoute>} />
+          <Route path="/test-mode/wat" element={<ProtectedRoute><WatInstructions /></ProtectedRoute>} />
           <Route path="/test-mode/wat/active" element={<ProtectedRoute><WatTest /></ProtectedRoute>} />
           <Route path="/test-vimeo" element={<TestVimeo />} />
 

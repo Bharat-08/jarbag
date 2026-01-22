@@ -1,20 +1,46 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import profilePlaceholder from "../assets/hero_emblem.png"; // Ensure this path is correct relative to components folder
 import './UnifiedNavbar.css';
 
-const UnifiedNavbar = () => {
+const UnifiedNavbar = ({ hideLinks = false }) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { user, logout } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+    const isActive = (path) => {
+        if (path === '/' && location.pathname === '/') return 'active';
+        if (path !== '/' && location.pathname.startsWith(path)) return 'active';
+        if (path === '/candidate-home' && (location.pathname.startsWith('/test-mode') || location.pathname.startsWith('/practice'))) return 'active';
+        return '';
+    };
+
     return (
         <nav className="unified-navbar">
-            <ul className="unified-links">
-                <li onClick={() => navigate('/practice')}>Practice</li>
-                <li onClick={() => navigate('/news')}>News</li>
-            </ul>
+            {!hideLinks && (
+                <ul className="unified-links">
+                    <li
+                        className={isActive('/')}
+                        onClick={() => navigate('/')}
+                    >
+                        Home Page
+                    </li>
+                    <li
+                        className={isActive('/candidate-home')}
+                        onClick={() => navigate('/candidate-home')}
+                    >
+                        Start Your Preparation
+                    </li>
+                    <li
+                        className={isActive('/news')}
+                        onClick={() => navigate('/news')}
+                    >
+                        News
+                    </li>
+                </ul>
+            )}
 
             <div className="unified-profile-container">
                 <div

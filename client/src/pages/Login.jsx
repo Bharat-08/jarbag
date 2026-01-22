@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -10,6 +10,10 @@ const Login = () => {
 
     const { login } = useAuth();
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check if we were redirected here from another page
+    const from = location.state?.from || null;
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -17,15 +21,19 @@ const Login = () => {
         setLoadingLocal(true);
         try {
             const response = await login(email, password);
-            // console.log("Logged in successfully"); // Cleaned up for production
 
-            // Navigate based on role from response
-            if (response.user.role === 'ADMIN') {
-                navigate('/admin-dashboard');
-            } else if (response.user.role === 'CANDIDATE') {
-                navigate('/');
+            // LOGIC CHANGE: If 'from' exists, go back there. Else go to default dashboard.
+            if (from) {
+                navigate(from, { replace: true });
             } else {
-                navigate('/news');
+                // Default Routing based on Role
+                if (response.user.role === 'ADMIN') {
+                    navigate('/admin-dashboard');
+                } else if (response.user.role === 'CANDIDATE') {
+                    navigate('/candidate-home'); // Updated to home dashboard instead of Landing
+                } else {
+                    navigate('/news');
+                }
             }
         } catch (err) {
             console.error(err);
@@ -42,6 +50,9 @@ const Login = () => {
                 <p className="auth-subtitle">Enter your credentials to continue</p>
 
                 {error && <div className="error-msg">{error}</div>}
+
+                {/* Optional: Show a message if they were redirected */}
+                {from && <div style={{ marginBottom: '10px', color: '#fbbf24', fontSize: '0.9rem' }}>Please sign in to access that page.</div>}
 
                 <form onSubmit={handleSubmit}>
                     <div className="form-group">

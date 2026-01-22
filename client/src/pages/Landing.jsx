@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UnifiedNavbar from '../components/UnifiedNavbar';
 // Import images
 import heroEmblem from '../assets/hero_emblem.png';
 import heroSoldier from '../assets/hero_soldier.png';
@@ -34,32 +35,7 @@ const Landing = () => {
 
     return (
         <div className="landing-page">
-            {/* Header/Nav */}
-            <nav className="landing-nav">
-                <div className="nav-links">
-                    <a href="#home">Home</a>
-                    <a href="#about">About</a>
-
-                    {/* Pricing removed as per user request */}
-                    <a href="#" onClick={(e) => { e.preventDefault(); navigate('/news'); }}>Daily Defence Updates</a>
-                    {(!user || user.role !== 'CANDIDATE') && (
-                        <a href="#" onClick={(e) => { e.preventDefault(); navigate('/mentor-registration'); }} style={{ color: '#fbbf24' }}>Join Us</a>
-                    )}
-                </div>
-                <button
-                    type="button"
-                    onClick={() => {
-                        if (user) {
-                            logout();
-                        } else {
-                            navigate('/login');
-                        }
-                    }}
-                    className="btn-login-yellow"
-                >
-                    {user ? "Logout" : "Login / Sign Up"}
-                </button>
-            </nav>
+            <UnifiedNavbar />
 
             {/* Hero Section */}
             <section id="home" className="hero-section">

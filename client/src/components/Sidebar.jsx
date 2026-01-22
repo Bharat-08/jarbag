@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext';
 const menuItems = [
     { id: 'dashboard', label: 'Dashboard', icon: '📊' },
     { id: 'students', label: 'Students', icon: '👥' },
-    { id: 'mentors', label: 'Mentors', icon: '👨🏫' },
+    { id: 'mentors', label: 'Mentors', icon: '👨' },
     { id: 'exam-activities', label: 'Exam Activities', icon: '📝' },
     { id: 'data-upload', label: 'Data Upload', icon: '☁️' },
 ];

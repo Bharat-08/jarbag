@@ -1,14 +1,17 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import UnifiedNavbar from '../components/UnifiedNavbar';
 import "./TatTest.css";
-import TatResult from '../components/TatResult'; // Import Result Component
-// Reuse test card or placeholder image for the test
+import TatResult from '../components/TatResult';
 import testImage from "../assets/test_card.png";
 
 export default function TatTest() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // Check if we received configuration from the Instructions page
+    const incomingConfig = location.state?.configImages;
 
     // States: SETUP, TEST, EVALUATING, COMPLETED
     const [step, setStep] = useState('SETUP');
@@ -35,9 +38,35 @@ export default function TatTest() {
     // Fetch images on mount
     useEffect(() => {
         api.get('/tat/images')
-            .then(res => setAvailableImages(res.data))
-            .catch(err => console.error("Failed to load TAT images", err));
+            .then(res => {
+                setAvailableImages(res.data);
+            })
+            .catch(err => {
+                console.error("Failed to load TAT images", err);
+                // Fallback for UI testing if backend fails
+                setAvailableImages(Array(12).fill({ id: 'dummy', url: testImage }));
+            });
     }, []);
+
+    // AUTO-START LOGIC: If we have incoming config + images are loaded, start immediately
+    useEffect(() => {
+        if (step === 'SETUP' && incomingConfig && availableImages.length > 0) {
+            console.log("Auto-starting TAT with config:", incomingConfig);
+
+            // Logic to start test
+            const n = Math.min(parseInt(incomingConfig), availableImages.length);
+            const shuffled = [...availableImages].sort(() => 0.5 - Math.random());
+            const selected = shuffled.slice(0, n);
+
+            setTestImages(selected);
+            setStep('TEST');
+            setCurrentIndex(0);
+
+            // Set initial phase manually here to ensure sync
+            setPhase('VIEW');
+            setTimeLeft(5);
+        }
+    }, [availableImages, incomingConfig, step]);
 
     // Cleanup timer on unmount
     useEffect(() => {
@@ -56,16 +85,18 @@ export default function TatTest() {
         return () => clearTimeout(timerRef.current);
     }, [timeLeft, step, phase]);
 
-    const startTest = () => {
-        const n = parseInt(numImages);
-        const max = availableImages.length;
+    // Manual Start (Fallback if no config passed)
+    const startTestManual = () => {
+        let n = parseInt(numImages);
+        const max = availableImages.length || 12;
 
-        if (!n || n < 1 || n > max) {
+        if (!numImages) n = Math.min(max, 12);
+
+        if (n < 1 || n > max) {
             alert(`Please enter a valid number of images (1-${max}).`);
             return;
         }
 
-        // Shuffle and pick n images
         const shuffled = [...availableImages].sort(() => 0.5 - Math.random());
         const selected = shuffled.slice(0, n);
 
@@ -95,12 +126,12 @@ export default function TatTest() {
     };
 
     const saveResponse = async () => {
-        // Save locally - Store the correct image ID with the response
+        // Save locally
         const currentImage = testImages[currentIndex];
         const currentStory = {
             index: currentIndex,
             text: response,
-            imageId: currentImage.id
+            imageId: currentImage?.id
         };
         const newResponses = [...allResponses, currentStory];
         setAllResponses(newResponses);
@@ -112,12 +143,11 @@ export default function TatTest() {
             startPhase('VIEW');
         } else {
             // Test Done
-            setStep('EVALUATING'); // Show loading
+            setStep('EVALUATING');
 
             try {
-                // For demo, we evaluate the LAST written story using its SPECIFIC image ID
                 const res = await api.post('/tat/evaluate', {
-                    stories: newResponses // Send FULL list of stories
+                    stories: newResponses
                 });
                 setEvaluationResult(res.data);
                 setStep('COMPLETED');
@@ -135,89 +165,147 @@ export default function TatTest() {
         }
     };
 
+    // --- RENDER: SETUP ---
     if (step === 'SETUP') {
+        // If we have incoming config, show a loader while auto-start effect kicks in
+        if (incomingConfig) {
+            return (
+                <div className="tat-test-container">
+                    <UnifiedNavbar />
+                    <div className="setup-wrapper">
+                        <div className="loader-container">
+                            <div className="loading-text">Initializing Test...</div>
+                            <div className="loading-sub">Preparing image sequence</div>
+                        </div>
+                    </div>
+                </div>
+            );
+        }
+
+        // Fallback: Show Manual Setup if accessed directly without config
         return (
             <div className="tat-test-container">
                 <UnifiedNavbar />
-                <div className="setup-box">
-                    <h2>Configuration</h2>
-                    <p>Enter number of images (Max {availableImages.length})</p>
-                    <input
-                        type="number"
-                        value={numImages}
-                        onChange={(e) => setNumImages(e.target.value)}
-                        placeholder={`e.g. ${Math.min(10, availableImages.length)}`}
-                        className="setup-input"
-                    />
-                    <button className="btn-start-test" onClick={startTest}>Start TAT</button>
-                    <button className="btn-cancel" onClick={() => navigate('/test-mode/tat')}>Cancel</button>
+                <div className="setup-wrapper">
+                    <div className="setup-card">
+                        <h2>TAT Configuration</h2>
+                        <p>Thematic Apperception Test Practice</p>
+
+                        <div className="input-group">
+                            <label className="input-label">Number of Images (Max: {availableImages.length})</label>
+                            <input
+                                type="number"
+                                value={numImages}
+                                onChange={(e) => setNumImages(e.target.value)}
+                                placeholder="e.g. 5"
+                                className="setup-input"
+                                min="1"
+                                max={availableImages.length}
+                            />
+                        </div>
+
+                        <div className="setup-actions">
+                            <button className="btn-primary-tat" onClick={startTestManual}>
+                                Start Assessment
+                            </button>
+                            <button className="btn-secondary-tat" onClick={() => navigate('/test-mode')}>
+                                Return to Menu
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         );
     }
 
+    // --- RENDER: EVALUATING ---
     if (step === 'EVALUATING') {
         return (
             <div className="tat-test-container">
                 <UnifiedNavbar />
-                <div className="text-white text-2xl font-bold animate-pulse">
-                    Evaluating your psych profile... <br />
-                    <span className="text-sm font-normal text-gray-400">Consulting Assessor...</span>
+                <div className="setup-wrapper">
+                    <div className="loader-container">
+                        <div className="loading-text">Assessing Profile...</div>
+                        <div className="loading-sub">Analyzing your psychological responses</div>
+                    </div>
                 </div>
             </div>
         )
     }
 
+    // --- RENDER: COMPLETED ---
     if (step === 'COMPLETED') {
         return (
-            <div className="tat-test-container overflow-y-auto">
+            <div className="tat-test-container">
                 <UnifiedNavbar />
-                <div className="result-box w-full max-w-4xl p-6">
-                    <h2 className="text-3xl font-bold text-center mb-6">Test Completed</h2>
+                <div className="result-card-wrapper">
+                    <h2 className="text-3xl font-bold text-center mb-6 text-white">Assessment Report</h2>
 
                     {evaluationResult ? (
                         <TatResult evaluation={evaluationResult} />
                     ) : (
-                        <p>No evaluation generated.</p>
+                        <p className="text-center text-gray-400">No evaluation generated.</p>
                     )}
 
-                    <button className="btn-home mt-8" onClick={() => navigate('/candidate-home')}>Go Home</button>
+                    <div className="text-center mt-8">
+                        <button className="btn-primary-tat" style={{ maxWidth: '300px' }} onClick={() => navigate('/candidate-home')}>
+                            Back to Dashboard
+                        </button>
+                    </div>
                 </div>
             </div>
         );
     }
 
+    // --- RENDER: ACTIVE TEST ---
     return (
         <div className="tat-test-container">
-            <UnifiedNavbar />
-            <div className="test-header">
-                <span>Image: {currentIndex + 1} / {testImages.length}</span>
-                <span className={`timer ${timeLeft < 10 ? 'warning' : ''}`}>
-                    00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
-                </span>
-                <span>Phase: {phase === 'VIEW' ? 'OBSERVE' : 'WRITE NOW'}</span>
+            {/* STICKY HEADER */}
+            <div className="test-header-bar">
+                <div className="progress-indicator">
+                    <span className="progress-label">Image Progress</span>
+                    <span className="progress-value">
+                        {currentIndex + 1} <span style={{ color: '#64748b' }}>/</span> {testImages.length}
+                    </span>
+                </div>
+
+                <div className="timer-box">
+                    <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600 }}>REMAINING</span>
+                    <span className={`timer-count ${timeLeft < 10 ? 'urgent' : ''}`}>
+                        00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+                    </span>
+                </div>
+
+                <div className={`phase-badge ${phase === 'VIEW' ? 'phase-view' : 'phase-write'}`}>
+                    {phase === 'VIEW' ? 'OBSERVE' : 'WRITE STORY'}
+                </div>
             </div>
 
-            <div className="test-content">
+            {/* TEST CONTENT */}
+            <div className="tat-content-wrapper">
                 {phase === 'VIEW' ? (
-                    <div className="image-view">
+                    <div className="image-frame">
                         <img
                             src={testImages[currentIndex]?.url || testImage}
                             alt="Observation"
-                            className="test-image"
+                            className="active-test-image"
                         />
                     </div>
                 ) : (
-                    <div className="response-view">
-                        <h3>Write your story</h3>
+                    <div className="response-container">
+                        <h3 className="response-instruction">Write a story based on the image you just saw.</h3>
                         <textarea
-                            className="response-input"
+                            className="response-textarea"
                             value={response}
                             onChange={(e) => setResponse(e.target.value)}
-                            placeholder="Type your story here..."
+                            placeholder="Describe what led to the situation, what is happening now, and the outcome..."
                             autoFocus
                         />
-                        <button className="btn-submit-early" onClick={handleSubmitEarly}>Submit & Next</button>
+                        <div className="response-footer">
+                            <button className="btn-submit-action" onClick={handleSubmitEarly}>
+                                Submit & Next Image
+                            </button>
+                        </div>
                     </div>
                 )}
             </div>

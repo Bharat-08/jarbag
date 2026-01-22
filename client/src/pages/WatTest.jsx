@@ -1,149 +1,147 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import api from '../api/axios';
-import WatResult from '../components/WatResult';
 import UnifiedNavbar from '../components/UnifiedNavbar';
-import "./WatTest.css";
-
-// Words are fetched from API now
+import './WatTest.css';
+import WatResult from '../components/WatResult';
 
 export default function WatTest() {
     const navigate = useNavigate();
+    const location = useLocation();
 
-    // States: SETUP, TEST, ANALYZING, COMPLETED
-    const [step, setStep] = useState('SETUP');
-    const [numWords, setNumWords] = useState('');
-    const [currentIndex, setCurrentIndex] = useState(0);
-    const [timeLeft, setTimeLeft] = useState(0);
+    // Config from previous page (if any)
+    const incomingConfig = location.state?.configWords;
 
-    // Dynamic Word Management
+    // States
+    const [step, setStep] = useState('SETUP'); // SETUP, TEST, EVALUATING, COMPLETED
     const [availableWords, setAvailableWords] = useState([]);
     const [testWords, setTestWords] = useState([]);
 
-    // Current Response
+    // Active Test State
+    const [currentIndex, setCurrentIndex] = useState(0);
+    const [timeLeft, setTimeLeft] = useState(15); // Standard WAT is 15s per word
     const [response, setResponse] = useState('');
     const [allResponses, setAllResponses] = useState([]);
 
-    // Evaluation Data
-    const [evaluationData, setEvaluationData] = useState(null);
+    // Evaluation
+    const [evaluationResult, setEvaluationResult] = useState(null);
 
     const timerRef = useRef(null);
 
-    // Fetch words on mount
+    // 1. Fetch Words on Mount
     useEffect(() => {
         api.get('/wat/words')
             .then(res => {
-                // Assuming res.data is array of objects { id, word } or just array of words?
-                // Adjust based on seed data. Seed data was { word: "..." } object usually.
-                // If seed script used prisma.create({ data: { word } }), it returns object { id, word, createdAt... }
-                // So we map to string or keep object
-                if (Array.isArray(res.data)) {
-                    setAvailableWords(res.data.map(w => w.word));
+                // FIX: Check if data exists and is not empty
+                if (res.data && res.data.length > 0) {
+                    // FIX: Map database 'word' field to frontend 'text' field
+                    const normalized = res.data.map(w => ({
+                        id: w.id,
+                        // Handle DB format (w.word), legacy object (w.text), or raw string (w)
+                        text: w.word || w.text || (typeof w === 'string' ? w : '')
+                    }));
+                    setAvailableWords(normalized);
+                } else {
+                    // Trigger catch block to use fallbacks if DB is empty
+                    throw new Error("Empty word list from API");
                 }
             })
-            .catch(err => console.error("Failed to load WAT words", err));
+            .catch(err => {
+                console.warn("Using fallback WAT words:", err.message);
+                // Fallback words ensures the test runs even if DB is empty
+                setAvailableWords([
+                    { text: "LEADER", id: "f1" }, { text: "RISK", id: "f2" },
+                    { text: "FAMILY", id: "f3" }, { text: "WAR", id: "f4" },
+                    { text: "LOVE", id: "f5" }, { text: "DUTY", id: "f6" },
+                    { text: "SUCCESS", id: "f7" }, { text: "FAILURE", id: "f8" },
+                    { text: "ARMY", id: "f9" }, { text: "TEAM", id: "f10" }
+                ]);
+            });
     }, []);
 
-    // Timer Logic
+    // 2. Auto-Start Logic
+    useEffect(() => {
+        if (step === 'SETUP' && availableWords.length > 0) {
+            startTest(incomingConfig || 60); // Default 60 if no config
+        }
+    }, [availableWords, incomingConfig, step]);
+
+    const startTest = (count) => {
+        const n = Math.min(parseInt(count), availableWords.length);
+        const shuffled = [...availableWords].sort(() => 0.5 - Math.random());
+        const selected = shuffled.slice(0, n);
+
+        setTestWords(selected);
+        setStep('TEST');
+        setCurrentIndex(0);
+        setTimeLeft(15);
+        setResponse('');
+    };
+
+    // --- CORE LOGIC: Robust transition handling ---
+    const submitTest = useCallback(async (finalResponses) => {
+        // Immediately update step to prevent any further timer ticks or actions
+        setStep('EVALUATING');
+        try {
+            const res = await api.post('/wat/evaluate', { responses: finalResponses });
+            setEvaluationResult(res.data);
+            setStep('COMPLETED');
+        } catch (error) {
+            console.error("WAT Evaluation error", error);
+            setEvaluationResult({ finalScorecard: { "Reasoning Ability": 0 }, feedback: "Evaluation failed. Please check network." });
+            setStep('COMPLETED');
+        }
+    }, []);
+
+    const handleNextWord = useCallback(async () => {
+        // Safety check: Don't proceed if we're not in TEST mode
+        if (step !== 'TEST') return;
+
+        const currentWord = testWords[currentIndex];
+
+        // Guard against missing data to prevent crashes
+        if (!currentWord) {
+            console.error("WAT Critical Error: Word data missing. Ending test.");
+            submitTest(allResponses);
+            return;
+        }
+
+        // 1. Save current response
+        const newRecord = {
+            word: currentWord.text,
+            response: response,
+            timeTaken: 15 - timeLeft
+        };
+
+        const updatedResponses = [...allResponses, newRecord];
+        setAllResponses(updatedResponses);
+
+        // 2. Check if end of test
+        if (currentIndex + 1 < testWords.length) {
+            // Move to next word
+            setCurrentIndex(prev => prev + 1);
+            setTimeLeft(15);
+            setResponse('');
+        } else {
+            // End of Test - Submit
+            submitTest(updatedResponses);
+        }
+    }, [currentIndex, testWords, response, allResponses, step, timeLeft, submitTest]);
+
+    // 3. Timer Logic
     useEffect(() => {
         if (step === 'TEST' && timeLeft > 0) {
             timerRef.current = setTimeout(() => {
                 setTimeLeft(prev => prev - 1);
             }, 1000);
-        } else if (step === 'TEST' && timeLeft === 0) {
-            handlePhaseComplete(); // Auto next
+        } else if (step === 'TEST' && timeLeft <= 0) {
+            // Time's up! Trigger next word logic.
+            handleNextWord();
         }
         return () => clearTimeout(timerRef.current);
-    }, [timeLeft, step]);
+    }, [timeLeft, step, handleNextWord]);
 
-    const startTest = () => {
-        const n = parseInt(numWords);
-        const max = availableWords.length;
-
-        if (!n || n < 1 || n > max) {
-            alert(`Please enter a valid number of words (1-${max}).`);
-            return;
-        }
-
-        // Shuffle words to ensure randomness
-        const shuffled = [...availableWords].sort(() => 0.5 - Math.random());
-        // Better shuffle (Fisher-Yates)
-        for (let i = shuffled.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-        }
-
-        setTestWords(shuffled.slice(0, n));
-        setStep('TEST');
-        setCurrentIndex(0);
-        startWord();
-    };
-
-    const startWord = () => {
-        setResponse('');
-        setTimeLeft(15); // 15 seconds per word
-    };
-
-    const [isProcessing, setIsProcessing] = useState(false);
-
-    const handlePhaseComplete = () => {
-        if (isProcessing) return;
-        setIsProcessing(true);
-
-        const currentWord = testWords[currentIndex];
-
-        // Safety check
-        if (!currentWord) {
-            setIsProcessing(false);
-            return;
-        }
-
-        const newEntry = { word: currentWord, response: response };
-
-        setAllResponses(prev => [...prev, newEntry]);
-    };
-
-    // Handle transitions when responses update
-    useEffect(() => {
-        if (allResponses.length === 0) return; // Initial load or reset
-
-        // Check if we just finished the last word
-        if (allResponses.length === testWords.length && step === 'TEST') {
-            submitEvaluation(allResponses);
-        } else if (allResponses.length > 0 && allResponses.length < testWords.length && step === 'TEST') {
-            // We added a response and there are more words to go
-            // Advance to next word
-            setTimeout(() => {
-                setCurrentIndex(prev => prev + 1);
-                startWord(); // Resets timer/response
-                setIsProcessing(false); // Reset processing after transition
-            }, 100);
-        } else {
-            // If for some reason allResponses grew but didn't trigger a transition (e.g., testWords.length is 0 or step changed)
-            // We should still reset isProcessing if it was set.
-            setIsProcessing(false);
-        }
-    }, [allResponses, testWords.length, step]); // Include step in dependency array
-
-    // Wrapper to handle manual 'Enter'
-    const handleNextWord = () => {
-        handlePhaseComplete();
-    };
-
-    const submitEvaluation = async (responses) => {
-        setStep('ANALYZING');
-        try {
-            const res = await api.post('/wat/evaluate', { responses });
-            setEvaluationData(res.data);
-            setStep('COMPLETED');
-        } catch (error) {
-            console.error("WAT Evaluation Failed", error);
-            alert("Failed to evaluate responses. Please try again.");
-            setStep('COMPLETED'); // Show raw results fallback or error state?
-        }
-    };
-
-    // Allow user to press Enter to submit early
+    // Handle "Enter" key
     const handleKeyDown = (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
@@ -151,99 +149,97 @@ export default function WatTest() {
         }
     };
 
+    // --- RENDER STAGES ---
     if (step === 'SETUP') {
-        if (availableWords.length === 0) {
-            return (
-                <div className="wat-test-container">
-                    <UnifiedNavbar />
-                    <div className="loading-screen text-white">Loading WAT Words...</div>
-                </div>
-            );
-        }
         return (
             <div className="wat-test-container">
                 <UnifiedNavbar />
-                <div className="setup-box">
-                    <h2>WAT Configuration</h2>
-                    <p>Enter number of words (Max {availableWords.length})</p>
-                    <input
-                        type="number"
-                        value={numWords}
-                        onChange={(e) => setNumWords(e.target.value)}
-                        placeholder="e.g. 10"
-                        className="setup-input"
-                    />
-                    <button className="btn-start-test" onClick={startTest}>Start WAT</button>
-                    <button className="btn-cancel" onClick={() => navigate('/test-mode')}>Cancel</button>
+                <div className="loader-container" style={{ marginTop: '10vh' }}>
+                    <div className="loading-text">Initializing WAT...</div>
+                    <div className="loading-sub">Loading word association set</div>
                 </div>
             </div>
         );
     }
 
-    if (step === 'ANALYZING') {
+    if (step === 'EVALUATING') {
         return (
             <div className="wat-test-container">
                 <UnifiedNavbar />
-                <div className="text-white text-2xl font-bold animate-pulse text-center">
-                    Analyzing psychological traits... <br />
-                    <span className="text-sm font-normal text-gray-400">Consulting Assessor...</span>
+                <div className="loader-container" style={{ marginTop: '20vh' }}>
+                    <div className="loading-text">Analyzing Responses...</div>
+                    <div className="loading-sub">Please wait while we process your test.</div>
                 </div>
             </div>
-        )
+        );
     }
 
     if (step === 'COMPLETED') {
         return (
-            <div className="wat-test-container overflow-y-auto">
+            <div className="wat-test-container">
                 <UnifiedNavbar />
-                <div className="w-full max-w-6xl p-4">
-                    {evaluationData ? (
-                        <WatResult results={evaluationData} />
+                <div className="result-card-wrapper">
+                    <h2 className="text-3xl font-bold text-center mb-6 text-white">WAT Assessment Report</h2>
+                    {evaluationResult ? (
+                        <WatResult results={evaluationResult} />
                     ) : (
-                        <div className="result-box-wide">
-                            <h2>Test Completed (No Analysis)</h2>
-                            <div className="responses-grid">
-                                {allResponses.map((item, idx) => (
-                                    <div key={idx} className="grid-row">
-                                        <span className="word-col">{item.word}</span>
-                                        <span className="resp-col">{item.response || "-"}</span>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+                        <p className="text-center text-gray-400">No evaluation generated.</p>
                     )}
-                    <div className="text-center mt-8 pb-8">
-                        <button className="btn-home" onClick={() => navigate('/candidate-home')}>Go Home</button>
+                    <div className="text-center mt-8">
+                        <button
+                            className="btn-submit-action"
+                            style={{ background: '#fbbf24', color: 'black', padding: '12px 24px', borderRadius: '8px', fontWeight: 'bold', border: 'none', cursor: 'pointer' }}
+                            onClick={() => navigate('/candidate-home')}
+                        >
+                            Return to Dashboard
+                        </button>
                     </div>
                 </div>
             </div>
         );
     }
 
+    // --- ACTIVE TEST RENDER ---
     return (
         <div className="wat-test-container">
-            <UnifiedNavbar />
-            <div className="test-header">
-                <span>Word: {currentIndex + 1} / {testWords.length}</span>
-                <span className={`timer ${timeLeft < 5 ? 'warning' : ''}`}>
-                    00:{timeLeft < 10 ? `0${timeLeft}` : timeLeft}
-                </span>
+            <div className="test-header-bar">
+                <div className="progress-indicator">
+                    <span className="progress-label">Word Progress</span>
+                    <span className="progress-value">
+                        {currentIndex + 1} <span style={{ color: '#64748b' }}>/</span> {testWords.length}
+                    </span>
+                </div>
+
+                <div className="timer-box">
+                    <span style={{ color: '#94a3b8', fontSize: '0.8rem', fontWeight: 600 }}>SECONDS LEFT</span>
+                    <span className={`timer-count ${timeLeft <= 5 ? 'urgent' : ''}`}>
+                        {timeLeft < 10 ? `0${timeLeft}` : timeLeft}
+                    </span>
+                </div>
+
+                <div className="phase-badge">QUICK REACTION</div>
             </div>
 
-            <div className="test-content-wat">
-                <h1 className="display-word">{testWords[currentIndex]}</h1>
+            <div className="wat-content-wrapper">
+                <div className="word-display-card">
+                    <h1 className="word-text">{testWords[currentIndex]?.text || "..."}</h1>
+                </div>
 
-                <div className="input-area">
+                <div className="response-area">
                     <input
                         type="text"
                         className="wat-input"
                         value={response}
                         onChange={(e) => setResponse(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        placeholder="Write a sentence..."
+                        placeholder="Type your thought here..."
                         autoFocus
+                        autoComplete="off"
                     />
-                    <p className="hint">Press Enter to skip/next or wait for timer</p>
+                    <div className="input-hint">
+                        <span>Press <strong>Enter</strong> to submit immediately</span>
+                        <button className="btn-skip" onClick={handleNextWord}>Skip Word</button>
+                    </div>
                 </div>
             </div>
         </div>
