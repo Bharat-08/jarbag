@@ -6,6 +6,8 @@ import './MentorListing.css'; // We will create this
 import heroEmblem from '../assets/hero_emblem.png'; // Placeholder fallback
 import PremiumModal from '../components/PremiumModal';
 import Toast from '../components/Toast';
+import UnifiedNavbar from '../components/UnifiedNavbar';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function MentorListing() {
     const navigate = useNavigate();
@@ -23,6 +25,7 @@ export default function MentorListing() {
             Interview: false,
             All: true
         },
+        slotsAvailable: false, // NEW: Slot availability filter
         price: 2000,
         ratingSort: null, // 'highToLow' | 'lowToHigh'
         expSort: null // 'highToLow' | 'lowToHigh'
@@ -35,7 +38,13 @@ export default function MentorListing() {
     const fetchMentors = async () => {
         try {
             const res = await api.get('/mentors/list');
-            setMentors(res.data.mentors || []);
+            // MOCKING AVAILABILITY: purely for frontend demo since backend doesn't send it yet
+            // Deterministic mock: Odd IDs have slots, Even IDs don't (or based on some hash)
+            const mentorsWithSlots = (res.data.mentors || []).map(m => ({
+                ...m,
+                hasSlots: (m.id % 3 !== 0) // 2 out of 3 have slots
+            }));
+            setMentors(mentorsWithSlots);
         } catch (err) {
             console.error("Failed to load mentors", err);
         } finally {
@@ -75,13 +84,13 @@ export default function MentorListing() {
         }
     };
 
+    const toggleSlotFilter = () => {
+        setFilters(prev => ({ ...prev, slotsAvailable: !prev.slotsAvailable }));
+    };
+
     const filteredMentors = mentors.filter(mentor => {
         // 1. Category Filter: If All is true or specific matches
         const { categories } = filters;
-        // Logic: specific categories are what matters for filtering
-        // If NO categories selected, maybe show none? Or all? 
-        // Typically "Apply All" means clear filters or select all. 
-        // Here, if Psych is checked, we show Psych.
 
         const activeCats = ['Psych', 'GTO', 'Interview'].filter(c => categories[c]);
 
@@ -95,13 +104,15 @@ export default function MentorListing() {
         // 2. Price Filter
         const priceMatch = mentor.price <= filters.price;
 
-        return catMatch && priceMatch;
-    }).sort((a, b) => { // ... sort logic remains ... 
-        // We can leave sort logic as is or just focus on the replace block being valid
-        return 0; // Placeholder for the sort part if we cut it off, but verify EndLine.
+        // 3. Slot Filter
+        const slotMatch = filters.slotsAvailable ? mentor.hasSlots : true;
+
+        return catMatch && priceMatch && slotMatch;
+    }).sort((a, b) => { // ... sort logic
+        return 0;
     });
 
-    // Restoration of sort logic for safety since we are replacing a chunk
+    // Restoration of sort logic
     filteredMentors.sort((a, b) => {
         if (filters.ratingSort) {
             return filters.ratingSort === 'highToLow' ? b.rating - a.rating : a.rating - b.rating;
@@ -120,18 +131,10 @@ export default function MentorListing() {
 
     return (
         <div className="mentor-listing-page">
-            <header className="listing-header">
-                <h1>Profile Listing</h1>
-                <div className="header-nav">
-                    <span onClick={() => navigate('/practice')}>Practice</span>
-                    <span onClick={() => navigate('/news')}>News</span>
-                    {!user?.isPremium && (
-                        <button className="btn-get-premium" onClick={() => setShowPremiumModal(true)}>
-                            Go Premium 👑
-                        </button>
-                    )}
-                </div>
-            </header>
+            <UnifiedNavbar />
+
+            {/* SPACER for fixed navbar handled by CSS or global padding, but UnifiedNavbar is usually fixed/relative. 
+                Using a spacer div if needed or rely on main-content padding. */}
 
             <div className="listing-hero">
                 <div className="hero-content">
@@ -182,6 +185,21 @@ export default function MentorListing() {
                                 />
                                 <span className="custom-check"></span>
                                 Apply all
+                            </label>
+                        </div>
+                    </div>
+
+                    <div className="filter-group">
+                        <label>Availability</label>
+                        <div className="toggle-wrapper">
+                            <span className="toggle-label">Only Available Slots</span>
+                            <label className="toggle-switch">
+                                <input
+                                    type="checkbox"
+                                    checked={filters.slotsAvailable}
+                                    onChange={toggleSlotFilter}
+                                />
+                                <span className="toggle-slider"></span>
                             </label>
                         </div>
                     </div>
@@ -257,10 +275,10 @@ export default function MentorListing() {
 
                 {/* MENTOR GRID */}
                 <div className="mentor-grid">
-                    {loading ? <p>Loading profiles...</p> : filteredMentors.map(mentor => (
+                    {loading ? <LoadingSpinner fullScreen={false} /> : filteredMentors.map(mentor => (
                         <div
                             key={mentor.id}
-                            className={`mentor-card ${!user?.isPremium ? 'locked-card' : ''}`}
+                            className="mentor-card"
                             onClick={() => {
                                 if (user?.isPremium) {
                                     navigate(`/mentor-listing/mentor/${mentor.id}`);
@@ -271,11 +289,13 @@ export default function MentorListing() {
                             style={{ cursor: 'pointer', position: 'relative' }}
                         >
                             <div className="card-left">
-                                <img
-                                    src={mentor.profileImage || heroEmblem}
-                                    alt={mentor.name}
-                                    className="mentor-avatar"
-                                />
+                                <div className={`avatar-wrapper ${mentor.hasSlots ? 'status-available' : 'status-busy'}`}>
+                                    <img
+                                        src={mentor.profileImage || heroEmblem}
+                                        alt={mentor.name}
+                                        className="mentor-avatar"
+                                    />
+                                </div>
                                 <div className="connection-status">
                                     <span className="lightning-icon">⚡</span> Connect
                                 </div>
@@ -287,23 +307,27 @@ export default function MentorListing() {
                                     <span className="badge-exp">🛡️ {mentor.expertise}</span>
                                     <span className="badge-years">📅 {mentor.yearsOfExperience} yrs</span>
                                 </div>
-                                <p className="mentor-bio">"{mentor.bio}"</p>
-                                <button className="btn-price">Rs. {mentor.price}</button>
+                                <p className={`mentor-bio ${!user?.isPremium ? 'blur-text' : ''}`}>
+                                    "{mentor.bio}"
+                                </p>
+                                <button className={`btn-price ${!user?.isPremium ? 'blur-text' : ''}`}>
+                                    Rs. {mentor.price}
+                                </button>
                             </div>
 
                             <div className="card-right">
-                                <button className="btn-check-profile">Check Profile</button>
+                                {user?.isPremium ? (
+                                    <button className="btn-check-profile">Check Profile</button>
+                                ) : (
+                                    <button className="btn-check-profile btn-locked">
+                                        <span>🔒</span> Unlock Profile
+                                    </button>
+                                )}
                                 <div className="rating-box">
                                     <span className="stars">{'★'.repeat(Math.round(mentor.rating))}</span>
                                     <span className="review-count">{mentor.reviewCount} reviews</span>
                                 </div>
                             </div>
-
-                            {!user?.isPremium && (
-                                <div className="lock-overlay">
-                                    <span className="lock-icon">🔒</span>
-                                </div>
-                            )}
                         </div>
                     ))}
                 </div>

@@ -3,6 +3,8 @@ import api from '../api/axios';
 import UnifiedNavbar from '../components/UnifiedNavbar';
 import './News.css';
 
+import LoadingSpinner from '../components/LoadingSpinner';
+
 export default function News() {
     const [news, setNews] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -40,10 +42,7 @@ export default function News() {
                 </div>
 
                 {loading ? (
-                    <div className="news-loader">
-                        <div className="loader-spinner"></div>
-                        <p>Scanning frequencies...</p>
-                    </div>
+                    <LoadingSpinner fullScreen={false} />
                 ) : error ? (
                     <div className="news-error">
                         <p>{error}</p>

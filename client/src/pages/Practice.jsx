@@ -5,12 +5,16 @@ import UnifiedNavbar from '../components/UnifiedNavbar';
 import PremiumModal from '../components/PremiumModal';
 import './Practice.css';
 
+import LoadingSpinner from '../components/LoadingSpinner';
+
 export default function Practice() {
     const navigate = useNavigate();
     const [videos, setVideos] = useState([]);
     const [accessLevel, setAccessLevel] = useState('FREE');
     const [loading, setLoading] = useState(true);
     const [showPremiumModal, setShowPremiumModal] = useState(false);
+
+    const [activeVideo, setActiveVideo] = useState(null);
 
     useEffect(() => {
         fetchContent();
@@ -39,37 +43,15 @@ export default function Practice() {
                 // Refresh content to see unlocked videos immediately
                 await fetchContent();
                 setShowPremiumModal(false);
-                // Optional: Show a toast here if I had one
             }
         } catch (err) {
             console.error("Upgrade failed", err);
-            alert("Upgrade failed. Please try again."); // Fallback for error or use custom toast
+            alert("Upgrade failed. Please try again.");
         }
-    };
-
-    // CRITICAL FIX: Converts "vimeo.com" links to "player.vimeo.com" links
-    const getEmbedUrl = (url) => {
-        if (!url) return "";
-
-        // 1. If it's already a correct player URL, return it
-        if (url.includes('player.vimeo.com')) return url;
-
-        // 2. If it's a standard Vimeo URL (e.g. https://vimeo.com/1156730233)
-        // We extract the ID and build the embed URL
-        const vimeoRegex = /(?:vimeo\.com\/)(\d+)/;
-        const match = url.match(vimeoRegex);
-        if (match && match[1]) {
-            return `https://player.vimeo.com/video/${match[1]}?title=0&byline=0&portrait=0`;
-        }
-
-        // 3. Fallback for other URLs (like YouTube)
-        return url;
     };
 
     // Helper Component for Lazy Loading
-    const VideoCard = ({ video, index, isLocked, onUpgrade }) => {
-        const [play, setPlay] = useState(false);
-
+    const VideoCard = ({ video, index, isLocked, onUpgrade, onPlay }) => {
         return (
             <div className={`video-card ${isLocked ? 'locked' : ''}`}>
                 <div className="video-info-top">
@@ -86,21 +68,10 @@ export default function Practice() {
                                 <button className="btn-unlock">Let's Upgrade</button>
                             </div>
                         </div>
-                    ) : play ? (
-                        <iframe
-                            src={getEmbedUrl(video.url)}
-                            title={`Lecture ${index + 1}`}
-                            width="100%"
-                            height="100%"
-                            frameBorder="0"
-                            allow="autoplay; fullscreen; picture-in-picture"
-                            allowFullScreen
-                            className="video-iframe"
-                        ></iframe>
                     ) : (
-                        <div className="video-placeholder" onClick={() => setPlay(true)}>
+                        <div className="video-placeholder" onClick={() => onPlay(video)}>
                             <div className="play-button">▶</div>
-                            <p>Click to Load Video</p>
+                            <p>Click to Play</p>
                         </div>
                     )}
                 </div>
@@ -115,7 +86,48 @@ export default function Practice() {
         );
     };
 
-    if (loading) return <div className="practice-container" style={{ color: 'white', padding: '2rem' }}>Loading content...</div>;
+    // Cinema Modal Component
+    const CinemaModal = ({ video, onClose }) => {
+        if (!video) return null;
+
+        // CRITICAL FIX: Converts "vimeo.com" links to "player.vimeo.com" links
+        const getEmbedUrl = (url) => {
+            if (!url) return "";
+            if (url.includes('player.vimeo.com')) return url;
+            const vimeoRegex = /(?:vimeo\.com\/)(\d+)/;
+            const match = url.match(vimeoRegex);
+            if (match && match[1]) {
+                return `https://player.vimeo.com/video/${match[1]}?title=1&byline=1&portrait=0&autoplay=1`;
+            }
+            return url;
+        };
+
+        return (
+            <div className="cinema-modal-overlay" onClick={onClose}>
+                <div className="cinema-modal-content" onClick={e => e.stopPropagation()}>
+                    <button className="cinema-close-btn" onClick={onClose}>×</button>
+                    <div className="cinema-video-wrapper">
+                        <iframe
+                            src={getEmbedUrl(video.url)}
+                            title="Cinema Mode"
+                            width="100%"
+                            height="100%"
+                            frameBorder="0"
+                            allow="autoplay; fullscreen; picture-in-picture"
+                            allowFullScreen
+                            className="cinema-iframe"
+                        ></iframe>
+                    </div>
+                    <div className="cinema-info">
+                        <h3>Now Playing: Video Lecture</h3>
+                        <p>Focus Mode Active</p>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    if (loading) return <LoadingSpinner />;
 
     return (
         <div className="practice-container">
@@ -133,7 +145,6 @@ export default function Practice() {
 
             <div className="video-grid">
                 {videos.map((video, index) => {
-                    // Use backend 'locked' status OR fallback to index logic
                     const isLocked = video.locked !== undefined
                         ? video.locked
                         : (accessLevel === 'FREE' && index > 0);
@@ -145,6 +156,7 @@ export default function Practice() {
                             index={index}
                             isLocked={isLocked}
                             onUpgrade={handleUpgrade}
+                            onPlay={setActiveVideo}
                         />
                     );
                 })}
@@ -154,6 +166,14 @@ export default function Practice() {
                 <div className="no-content">
                     <p>No practice lectures available at the moment.</p>
                 </div>
+            )}
+
+            {/* Cinema Modal */}
+            {activeVideo && (
+                <CinemaModal
+                    video={activeVideo}
+                    onClose={() => setActiveVideo(null)}
+                />
             )}
 
             <PremiumModal

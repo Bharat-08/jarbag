@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import './MentorRegistration.css';
+import UnifiedNavbar from '../components/UnifiedNavbar';
 
 const MentorRegistration = () => {
     const navigate = useNavigate();
@@ -60,7 +62,10 @@ const MentorRegistration = () => {
     };
 
     return (
-        <div className="auth-container">
+        <div className="auth-container" style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10 }}>
+                <UnifiedNavbar hideLinks={true} />
+            </div>
             <div className="auth-card" style={{ maxWidth: '600px' }}>
                 <h1 className="auth-title">Join as a Mentor</h1>
                 <p className="auth-subtitle">Share your expertise and guide the next generation.</p>
@@ -124,8 +129,7 @@ const MentorRegistration = () => {
                     <button
                         type="button"
                         onClick={() => navigate('/')}
-                        className="btn-link"
-                        style={{ marginTop: '1rem', display: 'block', width: '100%', textAlign: 'center' }}
+                        className="btn-cancel"
                     >
                         Cancel
                     </button>

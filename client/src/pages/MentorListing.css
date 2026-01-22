@@ -4,44 +4,63 @@
     color: #e5e5e5;
     min-height: 100vh;
     font-family: 'Inter', sans-serif;
+    padding-top: 100px;
 }
 
 /* HEADER */
-.listing-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 20px 40px;
-    background: #111;
-    border-bottom: 1px solid #333;
-}
-
-.listing-header h1 {
-    font-size: 1.5rem;
-    color: #888;
-}
-
-.header-nav {
-    display: flex;
-    gap: 20px;
-    align-items: center;
-}
-
-.header-nav span {
-    cursor: pointer;
-    font-weight: 500;
-}
-
-.header-nav span:hover {
-    color: #fca311;
-}
+/* OLD HEADER REMOVED - Using UnifiedNavbar */
 
 .header-search {
-    background: #fff;
-    border: none;
-    border-radius: 20px;
-    padding: 8px 16px;
-    width: 200px;
+    /* Kept if needed elsewhere, otherwise safe to ignore */
+    display: none;
+}
+
+/* STATUS INDICATORS */
+.avatar-wrapper {
+    position: relative;
+    border-radius: 50%;
+    padding: 3px;
+    transition: all 0.3s ease;
+}
+
+.status-available {
+    background: linear-gradient(45deg, #22c55e, #4ade80);
+    box-shadow: 0 0 15px rgba(34, 197, 94, 0.6);
+    animation: pulseData 2s infinite;
+}
+
+.status-busy {
+    background: linear-gradient(45deg, #ef4444, #f87171);
+    box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+    animation: pulseBusy 2s infinite;
+}
+
+@keyframes pulseData {
+    0% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(34, 197, 94, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+    }
+}
+
+@keyframes pulseBusy {
+    0% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7);
+    }
+
+    70% {
+        box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
+    }
+
+    100% {
+        box-shadow: 0 0 0 0 rgba(239, 68, 68, 0);
+    }
 }
 
 /* HERO STRIP */
@@ -113,6 +132,22 @@
     width: 250px;
     padding-right: 20px;
     border-right: 1px dashed #444;
+    position: sticky;
+    top: 100px;
+    /* 80px Navbar + 20px Gap */
+    height: fit-content;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+}
+
+/* Custom scrollbar for sidebar */
+.filters-sidebar::-webkit-scrollbar {
+    width: 4px;
+}
+
+.filters-sidebar::-webkit-scrollbar-thumb {
+    background: #333;
+    border-radius: 4px;
 }
 
 .sidebar-premium-cta {
@@ -250,10 +285,6 @@
     transition: all 0.2s;
 }
 
-.checkbox-label input:checked+.custom-radio {
-    border-color: #3b82f6;
-}
-
 .checkbox-label input:checked+.custom-radio::after {
     content: "";
     position: absolute;
@@ -264,6 +295,69 @@
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+}
+
+/* TOGGLE SWITCH */
+.toggle-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    cursor: pointer;
+    padding: 8px 0;
+}
+
+.toggle-label {
+    color: #cbd5e1;
+    font-size: 0.95rem;
+}
+
+.toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 44px;
+    height: 24px;
+}
+
+.toggle-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.toggle-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #333;
+    transition: .4s;
+    border-radius: 24px;
+    border: 1px solid #555;
+}
+
+.toggle-slider:before {
+    position: absolute;
+    content: "";
+    height: 18px;
+    width: 18px;
+    left: 2px;
+    bottom: 2px;
+    background-color: white;
+    transition: .4s;
+    border-radius: 50%;
+}
+
+input:checked+.toggle-slider {
+    background-color: #fca311;
+    border-color: #fca311;
+}
+
+input:checked+.toggle-slider:before {
+    transform: translateX(20px);
+    background-color: #000;
 }
 
 .price-slider-container {
@@ -324,7 +418,7 @@
 }
 
 .mentor-card {
-    background: #1a1b1e;
+    background: #111;
     border-radius: 12px;
     display: flex;
     align-items: center;
@@ -352,7 +446,9 @@
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid #555;
+    border: 3px solid #111;
+    /* Match card bg to create gap */
+    display: block;
 }
 
 .connection-status {
@@ -450,4 +546,30 @@
 .review-count {
     font-size: 0.7rem;
     color: #666;
+}
+
+.blur-text {
+    filter: blur(4px);
+    user-select: none;
+    opacity: 0.5;
+}
+
+.btn-locked {
+    background: transparent;
+    border: 1px solid #fca311;
+    color: #fca311;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+}
+
+.btn-locked:hover {
+    background: #fca311;
+    color: #000;
 }

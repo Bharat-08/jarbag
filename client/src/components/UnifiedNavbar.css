@@ -6,13 +6,39 @@
     align-items: center;
     justify-content: space-between;
     padding: 16px 40px;
-    background: transparent;
-    /* Ensure consistent background */
+    background: rgba(11, 12, 14, 0.95);
+    backdrop-filter: blur(10px);
     width: 100%;
-    z-index: 50;
-    position: relative;
+    z-index: 1000;
+    position: fixed;
+    top: 0;
+    left: 0;
+    height: 80px;
     box-sizing: border-box;
-    /* Fix for layout width issues */
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.unified-btn-back {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    color: #fff;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    font-size: 1.2rem;
+    margin-right: 20px;
+    transition: all 0.2s;
+}
+
+.unified-btn-back:hover {
+    background: #fbbf24;
+    color: #000;
+    transform: translateX(-3px);
+    border-color: #fbbf24;
 }
 
 .unified-links {

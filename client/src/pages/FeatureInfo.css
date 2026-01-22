@@ -1,0 +1,115 @@
+/* Feature Info Page Styles */
+.feature-info-page {
+    background-color: #050505;
+    min-height: 100vh;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+    color: #f8fafc;
+    font-family: 'Inter', sans-serif;
+}
+
+.info-container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 3rem 2rem;
+}
+
+.info-title {
+    font-size: 3rem;
+    font-weight: 800;
+    color: #fff;
+    margin-bottom: 0.5rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    border-left: 5px solid #fbbf24;
+    padding-left: 1.5rem;
+}
+
+.info-subtitle {
+    font-size: 1.2rem;
+    color: #94a3b8;
+    margin-bottom: 3rem;
+    padding-left: 1.8rem;
+}
+
+.info-section {
+    background: #111;
+    padding: 2rem;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    margin-bottom: 2rem;
+}
+
+.info-section h2 {
+    color: #fbbf24;
+    margin-bottom: 1rem;
+    font-size: 1.5rem;
+    text-transform: uppercase;
+}
+
+.info-section p,
+.info-section li {
+    color: #cbd5e1;
+    line-height: 1.7;
+    font-size: 1.05rem;
+}
+
+.info-section ul {
+    list-style-type: disc;
+    padding-left: 1.5rem;
+}
+
+.example-box {
+    background: rgba(251, 191, 36, 0.05);
+    border-left: 3px solid #fbbf24;
+    padding: 1.5rem;
+    margin-top: 1rem;
+    border-radius: 4px;
+}
+
+.step-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.step-item {
+    display: flex;
+    gap: 1rem;
+    align-items: flex-start;
+}
+
+.step-num {
+    background: #fbbf24;
+    color: #000;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+.btn-action-gold {
+    background: #fbbf24;
+    color: #000;
+    border: none;
+    padding: 1rem 2.5rem;
+    font-size: 1.1rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.3s;
+    margin-top: 1rem;
+    display: block;
+    width: 100%;
+    text-align: center;
+}
+
+.btn-action-gold:hover {
+    background: #fff;
+    transform: translateY(-2px);
+}

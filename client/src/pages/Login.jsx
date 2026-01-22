@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
+import UnifiedNavbar from '../components/UnifiedNavbar';
 
 const Login = () => {
     const [email, setEmail] = useState('');
@@ -44,7 +45,10 @@ const Login = () => {
     };
 
     return (
-        <div className="auth-container">
+        <div className="auth-container" style={{ position: 'relative' }}>
+            <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10 }}>
+                <UnifiedNavbar hideLinks={true} />
+            </div>
             <div className="auth-card">
                 <h2 className="auth-title">Welcome Back</h2>
                 <p className="auth-subtitle">Enter your credentials to continue</p>

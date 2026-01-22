@@ -11,8 +11,14 @@ import MentorRegistration from './pages/MentorRegistration';
 import CandidateHome from './pages/CandidateHome';
 import Practice from './pages/Practice';
 
+// Feature Info Pages
+import AssessmentInfo from './pages/AssessmentInfo';
+import ContentInfo from './pages/ContentInfo';
+import MentorshipInfo from './pages/MentorshipInfo';
+
 // Test & Assessment Pages
 import TestMode from './pages/TestMode';
+import TestHistory from './pages/TestHistory';
 import TatInstructions from './pages/TatInstructions';
 import TatTest from './pages/TatTest';
 import WatTest from './pages/WatTest';
@@ -32,7 +38,7 @@ const ProtectedRoute = ({ children }) => {
   const location = useLocation(); // Capture where the user is trying to go
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (!user) {
@@ -48,7 +54,7 @@ const AdminRoute = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (!user || user.role !== 'ADMIN') {
@@ -63,7 +69,7 @@ const PublicOnlyRoute = ({ children }) => {
   const location = useLocation();
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <LoadingSpinner />;
   }
 
   if (user) {
@@ -86,9 +92,13 @@ const PublicOnlyRoute = ({ children }) => {
   return children;
 };
 
+import ScrollToTop from './components/ScrollToTop';
+import LoadingSpinner from './components/LoadingSpinner';
+
 function App() {
   return (
     <Router>
+      <ScrollToTop />
       <AuthProvider>
         <Routes>
           {/* Public Routes */}
@@ -96,6 +106,11 @@ function App() {
           <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
           <Route path="/login" element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
           <Route path="/mentor-registration" element={<MentorRegistration />} />
+
+          {/* Feature Info Routes (Public) */}
+          <Route path="/features/assessments" element={<AssessmentInfo />} />
+          <Route path="/features/content" element={<ContentInfo />} />
+          <Route path="/features/mentorship" element={<MentorshipInfo />} />
 
           {/* Protected Routes (Candidates & Others) */}
           <Route path="/news" element={<ProtectedRoute><News /></ProtectedRoute>} />
@@ -112,6 +127,7 @@ function App() {
 
           {/* Test Mode Routes */}
           <Route path="/test-mode" element={<ProtectedRoute><TestMode /></ProtectedRoute>} />
+          <Route path="/test-history" element={<ProtectedRoute><TestHistory /></ProtectedRoute>} />
           <Route path="/test-mode/tat" element={<ProtectedRoute><TatInstructions /></ProtectedRoute>} />
           <Route path="/test-mode/tat/active" element={<ProtectedRoute><TatTest /></ProtectedRoute>} />
           <Route path="/test-mode/wat" element={<ProtectedRoute><WatInstructions /></ProtectedRoute>} />

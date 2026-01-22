@@ -3,6 +3,8 @@ import { useParams, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import './MentorProfile.css';
 import heroEmblem from '../assets/hero_emblem.png';
+import UnifiedNavbar from '../components/UnifiedNavbar';
+import LoadingSpinner from '../components/LoadingSpinner';
 
 export default function MentorProfile() {
     const { id } = useParams();
@@ -42,12 +44,12 @@ export default function MentorProfile() {
         alert(`Purchase functionality coming soon for ${course.title}! (Mock)`);
     };
 
-    if (loading) return <div className="loading-screen">Loading Profile...</div>;
+    if (loading) return <LoadingSpinner />;
     if (!mentor) return <div className="error-screen">Mentor not found.</div>;
 
     return (
         <div className="mentor-profile-container">
-            <button className="btn-back" onClick={() => navigate('/mentor-listing')}>← Back to Mentors</button>
+            <UnifiedNavbar />
 
             <header className="profile-header">
                 <div className="profile-card-main">

@@ -2,11 +2,17 @@ import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import './ExamDetailView.css';
 
-const ExamDetailView = ({ examId, onClose }) => {
-    const [exam, setExam] = useState(null);
-    const [loading, setLoading] = useState(true);
+const ExamDetailView = ({ examId, examData, onClose }) => {
+    const [exam, setExam] = useState(examData || null);
+    const [loading, setLoading] = useState(!examData);
 
     useEffect(() => {
+        if (examData) {
+            setExam(examData);
+            setLoading(false);
+            return;
+        }
+
         const fetchExamDetails = async () => {
             try {
                 const res = await api.get(`/admin/activity/${examId}`);
@@ -21,7 +27,7 @@ const ExamDetailView = ({ examId, onClose }) => {
         if (examId) {
             fetchExamDetails();
         }
-    }, [examId]);
+    }, [examId, examData]);
 
     if (loading) return <div className="detail-modal-overlay"><div className="detail-loading">Loading details...</div></div>;
     if (!exam) return null;
@@ -39,7 +45,14 @@ const ExamDetailView = ({ examId, onClose }) => {
     const getScoreColor = (pct) => {
         if (pct >= 80) return 'text-green-400 border-green-400';
         if (pct >= 60) return 'text-yellow-400 border-yellow-400';
+        if (pct >= 60) return 'text-yellow-400 border-yellow-400';
         return 'text-red-400 border-red-400';
+    };
+
+    const hasValidScores = (scores) => {
+        if (!scores) return false;
+        if (Array.isArray(scores)) return scores.length > 0;
+        return Object.keys(scores).length > 0;
     };
 
     return (
@@ -67,24 +80,27 @@ const ExamDetailView = ({ examId, onClose }) => {
                                         <h4>Story {index + 1}</h4>
                                         <p className="story-text">{item.response}</p>
 
-                                        {/* Render AI Scores if available */}
-                                        {item.scores && (
-                                            <div className="mini-scores-grid mt-4">
-                                                {/* <h5 className="text-sm font-semibold text-sky-400 mb-2">Psychological Analysis:</h5> */}
-                                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                                    {Object.entries(item.scores).map(([trait, val]) => (
-                                                        val > 0 && (
-                                                            <div key={trait} className="flex justify-between border-b border-gray-700 pb-1">
-                                                                <span className="text-gray-400">{trait}</span>
-                                                                <span className={`font-bold ${val >= 4 ? 'text-green-400' : val >= 3 ? 'text-yellow-400' : 'text-red-400'}`}>
+                                        <div className="mini-scores-grid mt-4">
+                                            <h5 className="analysis-header">Psychological Analysis:</h5>
+                                            {hasValidScores(item.scores) ? (
+                                                <div className="score-grid-layout">
+                                                    {(Array.isArray(item.scores) ? item.scores : Object.entries(item.scores).map(([k, v]) => ({ parameter: k, score: v }))).map((entry) => {
+                                                        const trait = entry.parameter || entry.trait; // Handle varying key names
+                                                        const val = entry.score;
+                                                        return val > 0 && (
+                                                            <div key={trait} className="score-row">
+                                                                <span className="trait-name">{trait}</span>
+                                                                <span className={`trait-val ${val >= 4 ? 'score-high' : val >= 3 ? 'score-mid' : 'score-low'}`}>
                                                                     {val}/5
                                                                 </span>
                                                             </div>
-                                                        )
-                                                    ))}
+                                                        );
+                                                    })}
                                                 </div>
-                                            </div>
-                                        )}
+                                            ) : (
+                                                <div className="analysis-pending">Analysis Not Completed</div>
+                                            )}
+                                        </div>
                                     </div>
                                 </div>
                             ))}
@@ -98,27 +114,29 @@ const ExamDetailView = ({ examId, onClose }) => {
                                     <tr>
                                         <th>Word</th>
                                         <th>Sentence</th>
-                                        {/* <th>Analysis</th> */}
+                                        <th>Analysis</th>
                                     </tr>
                                 </thead>
                                 <tbody>
                                     {responses.map((item, index) => (
                                         <tr key={index}>
-                                            <td className="wat-word">{item.trigger}</td>
+                                            <td className="wat-word">{item.word || item.trigger}</td>
                                             <td className="wat-sentence">{item.response}</td>
-                                            {/* <td className="wat-analysis text-xs">
-                                                {item.scores && (
-                                                    <div className="flex flex-wrap gap-2">
+                                            <td className="wat-analysis text-xs">
+                                                {hasValidScores(item.scores) ? (
+                                                    <div className="wat-badges-container">
                                                         {Object.entries(item.scores).map(([trait, val]) => (
-                                                            val >= 3 && ( // Only show significant traits to save space
-                                                                <span key={trait} className={`px-2 py-1 rounded bg-gray-800 ${val >= 4 ? 'text-green-400' : 'text-yellow-400'}`}>
-                                                                    {trait.split(' ')[0]}: {val}
+                                                            val >= 3 && ( // Only show significant traits
+                                                                <span key={trait} className={`trait-badge ${val >= 4 ? 'score-high' : 'score-mid'}`}>
+                                                                    {trait}: {val}
                                                                 </span>
                                                             )
                                                         ))}
                                                     </div>
+                                                ) : (
+                                                    <span className="analysis-pending">Analysis Not Completed</span>
                                                 )}
-                                            </td> */}
+                                            </td>
                                         </tr>
                                     ))}
                                 </tbody>

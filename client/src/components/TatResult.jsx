@@ -40,8 +40,8 @@ export default function TatResult({ evaluation }) {
                             key={idx}
                             onClick={() => setActiveIndex(idx)}
                             className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeIndex === idx
-                                    ? 'bg-yellow-500 text-black shadow-lg'
-                                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
+                                ? 'bg-yellow-500 text-black shadow-lg'
+                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
                                 }`}
                         >
                             Story {idx + 1}
