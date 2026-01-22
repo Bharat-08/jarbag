@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import UnifiedNavbar from '../components/UnifiedNavbar';
+import PremiumModal from '../components/PremiumModal';
 import './Practice.css';
 
 export default function Practice() {
@@ -8,6 +10,7 @@ export default function Practice() {
     const [videos, setVideos] = useState([]);
     const [accessLevel, setAccessLevel] = useState('FREE');
     const [loading, setLoading] = useState(true);
+    const [showPremiumModal, setShowPremiumModal] = useState(false);
 
     useEffect(() => {
         fetchContent();
@@ -25,20 +28,22 @@ export default function Practice() {
         }
     };
 
-    const handleUpgrade = async () => {
-        const confirmed = window.confirm("Upgrade to Premium for free instantly?");
-        if (!confirmed) return;
+    const handleUpgrade = () => {
+        setShowPremiumModal(true);
+    };
 
+    const confirmUpgrade = async () => {
         try {
             const res = await api.post('/auth/upgrade');
             if (res.data.success) {
-                alert("Upgrade Successful! Unlocking content...");
                 // Refresh content to see unlocked videos immediately
                 await fetchContent();
+                setShowPremiumModal(false);
+                // Optional: Show a toast here if I had one
             }
         } catch (err) {
             console.error("Upgrade failed", err);
-            alert("Upgrade failed. Please try again.");
+            alert("Upgrade failed. Please try again."); // Fallback for error or use custom toast
         }
     };
 
@@ -114,12 +119,17 @@ export default function Practice() {
 
     return (
         <div className="practice-container">
-            <header className="practice-header">
-                <div className="header-content">
-                    <h1>Practice Lectures <span className={`plan-badge ${accessLevel.toLowerCase()}`}>{accessLevel}</span></h1>
-                    <button className="btn-back" onClick={() => navigate('/candidate-home')}>Back Home</button>
-                </div>
-            </header>
+            <UnifiedNavbar />
+
+            <div className="practice-header-section">
+                <h1 className="page-title-gradient">
+                    Practice Lectures
+                    <span className={`plan-badge-large ${accessLevel.toLowerCase()}`}>
+                        {accessLevel === 'PREMIUM' ? 'PREMIUM 👑' : 'FREE ACCESS'}
+                    </span>
+                </h1>
+                <p className="page-subtitle">Master your skills with our curated video lectures.</p>
+            </div>
 
             <div className="video-grid">
                 {videos.map((video, index) => {
@@ -145,6 +155,12 @@ export default function Practice() {
                     <p>No practice lectures available at the moment.</p>
                 </div>
             )}
+
+            <PremiumModal
+                isOpen={showPremiumModal}
+                onClose={() => setShowPremiumModal(false)}
+                onConfirm={confirmUpgrade}
+            />
         </div>
     );
 }

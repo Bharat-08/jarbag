@@ -1,52 +1,127 @@
+/* Practice.css */
+
+/* CONTAINER & PAGE BACKGROUND */
 .practice-container {
     min-height: 100vh;
-    background-color: #0d0d0d;
+    background: radial-gradient(circle at top, #1a0b0b, #000);
     color: #e5e5e5;
-    padding: 20px;
     font-family: 'Inter', sans-serif;
+    padding-bottom: 60px;
 }
 
-.practice-header {
-    display: flex;
-    justify-content: space-between;
+/* HEADER SECTION */
+.practice-header-section {
+    text-align: center;
+    padding: 60px 20px 40px;
+    animation: fadeInDown 0.8s ease-out;
+}
+
+.page-title-gradient {
+    font-size: 3rem;
+    font-weight: 800;
+    margin-bottom: 10px;
+    background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-flex;
     align-items: center;
-    margin-bottom: 30px;
+    gap: 15px;
+    flex-wrap: wrap;
+    justify-content: center;
 }
 
-.btn-back {
-    background: transparent;
-    border: 1px solid #444;
-    color: #e5e5e5;
-    padding: 8px 16px;
-    border-radius: 6px;
-    cursor: pointer;
+.plan-badge-large {
+    font-size: 0.9rem;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    -webkit-text-fill-color: initial;
+    /* Reset gradient text for badge */
+    color: #fff;
+    text-transform: uppercase;
+    vertical-align: middle;
 }
 
+.plan-badge-large.free {
+    background: rgba(255, 255, 255, 0.1);
+    color: #aaa;
+}
+
+.plan-badge-large.premium {
+    background: linear-gradient(135deg, #ffd700, #b8860b);
+    color: #000;
+    border: none;
+    box-shadow: 0 0 15px rgba(255, 215, 0, 0.4);
+}
+
+.page-subtitle {
+    font-size: 1.1rem;
+    color: #888;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* GRID LAYOUT */
 .video-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
-    gap: 30px;
-    padding-top: 20px;
+    grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+    gap: 40px;
+    padding: 0 40px;
+    max-width: 1400px;
+    margin: 0 auto;
+    animation: fadeInUp 0.8s ease-out 0.2s backwards;
 }
 
+/* VIDEO CARD */
 .video-card {
-    background: #161616;
-    border: 1px solid #333;
-    border-radius: 12px;
+    background: #111;
+    border: 1px solid #222;
+    border-radius: 20px;
     overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
 }
 
-/* --- BULLETPROOF 16:9 ASPECT RATIO --- */
+.video-card:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+    border-color: #333;
+}
+
+.video-card.locked {
+    opacity: 0.9;
+    border-color: #2a1a1a;
+}
+
+/* INFO TOP */
+.video-info-top {
+    padding: 18px 20px;
+    background: #181818;
+    border-bottom: 1px solid #222;
+}
+
+.video-info-top h3 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ddd;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* VIDEO WRAPPER (16:9) */
 .video-wrapper {
     position: relative;
     width: 100%;
     padding-top: 56.25%;
-    /* 16:9 Ratio (Height is 56.25% of width) */
     background: #000;
-    /* Black background so you can see if it renders */
 }
 
-/* LAZY LOAD PLACEHOLDER */
+/* PLACEHOLDER */
 .video-placeholder {
     position: absolute;
     inset: 0;
@@ -54,21 +129,117 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    background: #222;
+    background: radial-gradient(circle, #222, #000);
+    cursor: pointer;
+    transition: all 0.3s;
+}
+
+.video-placeholder:hover .play-button {
+    transform: scale(1.1);
+    color: #fca311;
+}
+
+.play-button {
+    font-size: 4rem;
+    color: rgba(255, 255, 255, 0.8);
+    transition: all 0.3s ease;
+    margin-bottom: 15px;
+    text-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+}
+
+.video-placeholder p {
+    font-size: 0.9rem;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-weight: 500;
+}
+
+/* LOCKED OVERLAY */
+.lock-overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
     cursor: pointer;
     transition: background 0.3s;
 }
 
-.video-placeholder:hover {
-    background: #333;
+.lock-overlay:hover {
+    background: rgba(0, 0, 0, 0.6);
 }
 
-.play-button {
-    font-size: 3rem;
+.lock-content {
+    text-align: center;
+    padding: 20px;
     color: white;
-    margin-bottom: 10px;
 }
 
+.lock-icon {
+    font-size: 3rem;
+    margin-bottom: 10px;
+    display: block;
+    filter: drop-shadow(0 0 10px rgba(255, 215, 0, 0.5));
+}
+
+.lock-content h3 {
+    font-size: 1.4rem;
+    margin-bottom: 8px;
+    font-weight: 700;
+}
+
+.lock-content p {
+    font-size: 0.9rem;
+    color: #ccc;
+    margin-bottom: 20px;
+}
+
+.btn-unlock {
+    background: linear-gradient(135deg, #fca311 0%, #e63946 100%);
+    border: none;
+    padding: 10px 24px;
+    color: white;
+    font-weight: 700;
+    border-radius: 30px;
+    cursor: pointer;
+    box-shadow: 0 5px 15px rgba(230, 57, 70, 0.4);
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.btn-unlock:hover {
+    transform: scale(1.05);
+    box-shadow: 0 8px 20px rgba(230, 57, 70, 0.6);
+}
+
+/* VIDEO INFO BOTTOM */
+.video-info-bottom {
+    padding: 15px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #111;
+}
+
+.video-date {
+    font-size: 0.85rem;
+    color: #666;
+}
+
+.status-badge {
+    font-size: 0.75rem;
+    background: #2a1515;
+    color: #ff6b6b;
+    padding: 4px 10px;
+    border-radius: 4px;
+    border: 1px solid #4a1a1a;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+/* IFRAME */
 .video-iframe {
     position: absolute;
     top: 0;
@@ -77,20 +248,39 @@
     height: 100%;
 }
 
-/* ------------------------------------- */
+/* ANIMATIONS */
+@keyframes fadeInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
 
-.video-info {
-    padding: 15px;
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.video-info h3 {
-    margin: 0;
-    font-size: 1.1rem;
-    color: #fff;
+@keyframes fadeInUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
-.no-content {
-    text-align: center;
-    margin-top: 50px;
-    color: #666;
+/* RESPONSIVE */
+@media (max-width: 768px) {
+    .page-title-gradient {
+        font-size: 2rem;
+    }
+
+    .video-grid {
+        grid-template-columns: 1fr;
+        padding: 0 20px;
+    }
 }

@@ -186,7 +186,7 @@ export default function WatTest() {
                 <UnifiedNavbar />
                 <div className="text-white text-2xl font-bold animate-pulse text-center">
                     Analyzing psychological traits... <br />
-                    <span className="text-sm font-normal text-gray-400">Consulting Gemini 2.5 Flash...</span>
+                    <span className="text-sm font-normal text-gray-400">Consulting Assessor...</span>
                 </div>
             </div>
         )

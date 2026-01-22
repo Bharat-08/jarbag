@@ -5,28 +5,23 @@ const PremiumModal = ({ isOpen, onClose, onConfirm }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="premium-modal-overlay">
-            <div className="premium-modal-content">
-                <button className="close-btn" onClick={onClose}>&times;</button>
+        <div className="premium-modal-overlay" onClick={onClose}>
+            <div className="premium-modal-content" onClick={e => e.stopPropagation()}>
+                <button className="modal-close-btn" onClick={onClose}>&times;</button>
 
-                <div className="modal-header">
-                    <span className="crown-icon">👑</span>
-                    <h2>Unlock Premium Access</h2>
-                </div>
-
-                <p className="modal-body">
-                    Get exclusive access to top-rated mentors, unlimited practice resources, and personalized guidance.
+                <div className="modal-icon">👑</div>
+                <h2 className="modal-title">Unlock Premium Access</h2>
+                <p className="modal-description">
+                    Get instant access to all exclusive video lectures and study improvements.
+                    Upgrade now for free!
                 </p>
 
-                <ul className="premium-features">
-                    <li>✨ Book 1-on-1 Sessions</li>
-                    <li>✨ Access Exclusive Courses</li>
-                    <li>✨ Unlimited Mock Tests</li>
-                </ul>
-
-                <button className="btn-upgrade" onClick={onConfirm}>
-                    Get Premium Now →
-                </button>
+                <div className="modal-actions">
+                    <button className="btn-cancel" onClick={onClose}>Maybe Later</button>
+                    <button className="btn-confirm-premium" onClick={onConfirm}>
+                        Upgrade Instantly
+                    </button>
+                </div>
             </div>
         </div>
     );

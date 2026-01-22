@@ -70,7 +70,7 @@ const ExamDetailView = ({ examId, onClose }) => {
                                         {/* Render AI Scores if available */}
                                         {item.scores && (
                                             <div className="mini-scores-grid mt-4">
-                                                <h5 className="text-sm font-semibold text-sky-400 mb-2">Psychological Analysis:</h5>
+                                                {/* <h5 className="text-sm font-semibold text-sky-400 mb-2">Psychological Analysis:</h5> */}
                                                 <div className="grid grid-cols-2 gap-2 text-xs">
                                                     {Object.entries(item.scores).map(([trait, val]) => (
                                                         val > 0 && (
@@ -98,7 +98,7 @@ const ExamDetailView = ({ examId, onClose }) => {
                                     <tr>
                                         <th>Word</th>
                                         <th>Sentence</th>
-                                        <th>Analysis</th>
+                                        {/* <th>Analysis</th> */}
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -106,7 +106,7 @@ const ExamDetailView = ({ examId, onClose }) => {
                                         <tr key={index}>
                                             <td className="wat-word">{item.trigger}</td>
                                             <td className="wat-sentence">{item.response}</td>
-                                            <td className="wat-analysis text-xs">
+                                            {/* <td className="wat-analysis text-xs">
                                                 {item.scores && (
                                                     <div className="flex flex-wrap gap-2">
                                                         {Object.entries(item.scores).map(([trait, val]) => (
@@ -118,7 +118,7 @@ const ExamDetailView = ({ examId, onClose }) => {
                                                         ))}
                                                     </div>
                                                 )}
-                                            </td>
+                                            </td> */}
                                         </tr>
                                     ))}
                                 </tbody>

@@ -162,7 +162,7 @@ export default function TatTest() {
                 <UnifiedNavbar />
                 <div className="text-white text-2xl font-bold animate-pulse">
                     Evaluating your psych profile... <br />
-                    <span className="text-sm font-normal text-gray-400">Consulting Gemini AI Assessor...</span>
+                    <span className="text-sm font-normal text-gray-400">Consulting Assessor...</span>
                 </div>
             </div>
         )

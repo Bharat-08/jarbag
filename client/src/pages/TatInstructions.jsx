@@ -31,17 +31,15 @@ export default function TatInstructions() {
                 <h1 className="title">TEST MODE (SET 1) <span className="highlight">TAT</span></h1>
 
                 <div className="instruction-block">
-                    <h2 className="section-label">Ques:</h2>
+
                     <p className="intro-text">Get ready Dear Aspirant,</p>
-                    <p className="main-text">
-                        In the upcoming test session you will be having <span className="highlight">11 photos</span> on which you need to frame and write a story.
-                    </p>
+
                 </div>
 
                 <div className="instruction-block">
                     <h2 className="section-label">Instructions:</h2>
                     <ul className="instruction-list">
-                        <li>-<span className="highlight">Each photo</span> will be displayed for <span className="highlight">30 seconds</span> and you will have <span className="highlight">4 minutes to write your story.</span></li>
+                        <li>-<span className="highlight">Each photo</span> will be displayed for <span className="highlight">5 seconds</span> and you will have <span className="highlight">1 minutes to write your story.</span></li>
                         <li>-You may skip the photos but <span className="highlight">test once started cannot be paused</span> it will end only till you reach the last photo.</li>
                         <li>-In the last you will have a <span className="highlight">blank slide</span> in which you need to write your own story.</li>
                     </ul>

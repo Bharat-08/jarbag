@@ -29,7 +29,7 @@ export default function WatResult({ results }) {
             </div>
 
             {/* OVERALL SCORECARD */}
-            <h3 className="text-xl text-white mb-4 font-bold border-l-4 border-yellow-500 pl-3">Aggregate OLQ Scores</h3>
+            <h3 className="text-xl text-white mb-4 font-bold border-l-4 border-yellow-500 pl-3">Aggregate OLQ Scores out of 5</h3>
             <div className="scorecard-grid">
                 {Object.entries(finalScorecard).map(([olq, score]) => (
                     <div key={olq} className="olq-card">
