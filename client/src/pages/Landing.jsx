@@ -5,13 +5,32 @@ import { useAuth } from '../context/AuthContext';
 import heroEmblem from '../assets/hero_emblem.png';
 import heroSoldier from '../assets/hero_soldier.png';
 import ppdtSketch from '../assets/ppdt_sketch.png';
-import contactNotes from '../assets/contact_notes.png';
+
 // We can use the same sketch for WAT or a CSS gradient, but let's use the provided design idea.
 // For WAT, the user design had a pink card with "WAT". I'll replicate that style.
+import './Landing.css';
 
 const Landing = () => {
     const navigate = useNavigate();
     const { user, logout } = useAuth();
+
+    const handleGetStarted = () => {
+        if (!user) {
+            navigate('/signup');
+            return;
+        }
+
+        // Redirect based on role
+        if (user.role === 'ADMIN') {
+            navigate('/admin-dashboard');
+        } else if (user.role === 'MENTOR') {
+            navigate('/mentor-dashboard');
+        } else if (user.role === 'CANDIDATE') {
+            navigate('/candidate-home');
+        } else {
+            navigate('/news');
+        }
+    };
 
     return (
         <div className="landing-page">
@@ -20,8 +39,8 @@ const Landing = () => {
                 <div className="nav-links">
                     <a href="#home">Home</a>
                     <a href="#about">About</a>
-                    <a href="#contact">Contact</a>
-                    <a href="#pricing">Pricing</a>
+
+                    {/* Pricing removed as per user request */}
                     <a href="#" onClick={(e) => { e.preventDefault(); navigate('/news'); }}>Daily Defence Updates</a>
                     {(!user || user.role !== 'CANDIDATE') && (
                         <a href="#" onClick={(e) => { e.preventDefault(); navigate('/mentor-registration'); }} style={{ color: '#fbbf24' }}>Join Us</a>
@@ -49,8 +68,8 @@ const Landing = () => {
                         Do you have it<br />
                         in you <span className="text-red">?</span>
                     </h1>
-                    <p className="hero-subtitle">Some content here ....</p>
-                    <button className="btn-get-started" onClick={() => navigate('/signup')}>Get Started →</button>
+                    {/* Subtitle removed */}
+                    <button className="btn-get-started" onClick={handleGetStarted}>Get Started →</button>
                 </div>
                 <div className="hero-image-container">
                     <img src={heroEmblem} alt="Defence Emblem" className="hero-emblem" />
@@ -87,52 +106,33 @@ const Landing = () => {
             <section className="section-container features-section">
                 <h2 className="section-title">What do we have ?</h2>
                 <div className="cards-grid">
-                    <div className="feature-card ppdt-card">
-                        <img src={ppdtSketch} alt="PPDT" className="card-bg-img" />
-                        <div className="card-overlay">
-                            <h3>PPDT</h3>
+                    {/* Card 1: Practice Videos */}
+                    <div className="feature-card practice-card" onClick={() => navigate('/practice')}>
+                        <div className="card-content">
+                            <h3>Practice Videos</h3>
+                            <p>Watch and learn from expert clips.</p>
                         </div>
                     </div>
-                    <div className="feature-card wat-card">
-                        <div className="wat-content">
-                            <h3>WAT</h3>
-                            <h2>PRACTICE - 01</h2>
+
+                    {/* Card 2: Test */}
+                    <div className="feature-card test-card" onClick={() => navigate('/test-mode')}>
+                        <div className="card-content">
+                            <h3>Test</h3>
+                            <p>Take TAT, WAT and other tests.</p>
                         </div>
-                        <div className="card-footer">WAT</div>
+                    </div>
+
+                    {/* Card 3: 1:1 Mentorship */}
+                    <div className="feature-card mentorship-card" onClick={() => navigate('/mentor-listing')}>
+                        <div className="card-content">
+                            <h3>1:1 Mentorship</h3>
+                            <p>Connect with experts for guidance.</p>
+                        </div>
                     </div>
                 </div>
             </section>
 
-            {/* Contact Us */}
-            <section id="contact" className="section-container contact-section">
-                <h2 className="section-title">Contact Us</h2>
-                <div className="contact-grid">
-                    <div className="contact-visual">
-                        <img src={contactNotes} alt="Inspirational Notes" className="contact-img" />
-                    </div>
-                    <div className="contact-form-container">
-                        <form className="contact-form">
-                            <div className="form-row">
-                                <input type="text" placeholder="First name" className="input-dark" />
-                                <input type="text" placeholder="Last name" className="input-dark" />
-                            </div>
-                            <input type="email" placeholder="you@company.com" className="input-dark full-width" />
-                            <div className="phone-input full-width">
-                                <span className="country-code">IN v +91</span>
-                                <input type="tel" placeholder="9999999999" className="input-dark-no-border" />
-                            </div>
-                            <textarea placeholder="Message" className="input-dark full-width textarea-tall"></textarea>
 
-                            <div className="checkbox-row">
-                                <input type="checkbox" id="policy" />
-                                <label htmlFor="policy" className="small-text">You agree to our friendly privacy policy.</label>
-                            </div>
-
-                            <button type="button" className="btn-submit-yellow">Send message</button>
-                        </form>
-                    </div>
-                </div>
-            </section>
         </div>
     );
 };

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import api from '../api/axios';
 import { useNavigate } from 'react-router-dom';
+import './News.css';
 
 const News = () => {
     const [news, setNews] = useState([]);
@@ -12,7 +13,6 @@ const News = () => {
         const fetchNews = async () => {
             try {
                 const res = await api.get('/news');
-                // api returns { updates: [...], ... }
                 setNews(res.data.updates || []);
             } catch (err) {
                 console.error(err);
@@ -26,74 +26,58 @@ const News = () => {
     }, []);
 
     return (
-        <div className="news-page" style={{
-            minHeight: '100vh',
-            background: '#0f172a',
-            color: '#f8fafc',
-            padding: '4rem 2rem',
-            fontFamily: "'Inter', sans-serif"
-        }}>
-            <div className="container" style={{ maxWidth: '800px', margin: '0 auto' }}>
+        <div className="news-page">
+            <div className="news-container">
                 <button
                     onClick={() => navigate('/')}
-                    className="btn-back text-sm mb-6 text-slate-400 hover:text-white transition-colors"
+                    className="btn-news-back"
                 >
-                    ← Back to Dashboard
+                    <span>←</span> Dashboard
                 </button>
 
-                <h1 style={{
-                    fontSize: '3rem',
-                    fontWeight: '800',
-                    marginBottom: '0.5rem',
-                    background: 'linear-gradient(to right, #fbbf24, #f59e0b)',
-                    WebkitBackgroundClip: 'text',
-                    WebkitTextFillColor: 'transparent'
-                }}>
-                    Daily Defence Updates
-                </h1>
-                <p className="text-slate-400 mb-8">Latest headlines from Press Information Bureau</p>
+                <header className="news-header">
+                    <h1 className="news-title">Daily Defence Updates</h1>
+                    <p className="news-subtitle">Live briefings and headlines from the Press Information Bureau, Government of India.</p>
+                </header>
 
                 {loading ? (
-                    <div style={{ textAlign: 'center', marginTop: '4rem', color: '#94a3b8' }}>
-                        <div className="spinner" style={{ marginBottom: '1rem' }}>Loading feeds...</div>
+                    <div className="loading-container">
+                        <div className="spinner"></div>
+                        <p>Fetching latest inputs...</p>
                     </div>
                 ) : error ? (
-                    <div className="error-msg text-red-400 text-center">{error}</div>
+                    <div className="error-msg">{error}</div>
                 ) : (
-                    <div className="news-grid flex flex-col gap-4">
+                    <div className="news-grid">
                         {news.length > 0 ? (
                             news.map((item, index) => (
-                                <div key={index} style={{
-                                    background: 'rgba(30, 41, 59, 0.5)',
-                                    padding: '1.5rem',
-                                    borderRadius: '1rem',
-                                    border: '1px solid rgba(255,255,255,0.05)',
-                                    transition: 'transform 0.2s',
-                                    cursor: 'default'
-                                }} className="hover:bg-slate-800/80">
-                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="block group">
-                                        <h3 className="text-xl font-bold text-amber-400 mb-2 group-hover:text-amber-300 transition-colors">
-                                            {item.title}
-                                        </h3>
+                                <article key={index} className="news-card">
+                                    <a href={item.link} target="_blank" rel="noopener noreferrer" className="news-card-link-wrapper">
+                                        <h3 className="news-card-title">{item.title}</h3>
                                     </a>
+
                                     {item.publishedAt && (
-                                        <p className="text-xs text-slate-500 mb-3">{new Date(item.publishedAt).toDateString()}</p>
+                                        <time className="news-date">{new Date(item.publishedAt).toDateString()}</time>
                                     )}
-                                    <p className="text-slate-300 text-sm leading-relaxed mb-4">
-                                        {item.description ? item.description.replace(/<[^>]*>?/gm, '') : 'No description available.'}
-                                    </p>
+
+                                    {item.description && (
+                                        <p className="news-description">
+                                            {item.description.replace(/<[^>]*>?/gm, '')}
+                                        </p>
+                                    )}
+
                                     <a
                                         href={item.link}
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center text-xs font-bold text-indigo-400 hover:text-indigo-300 uppercase tracking-wide"
+                                        className="news-link"
                                     >
-                                        Read Full Release →
+                                        Read Official Release ↗
                                     </a>
-                                </div>
+                                </article>
                             ))
                         ) : (
-                            <p className="text-center text-slate-500">No updates found at this time.</p>
+                            <p className="text-center text-slate-500">No updates found for today.</p>
                         )}
                     </div>
                 )}

@@ -13,23 +13,51 @@ export const setAccessToken = (token) => {
 
 export const getAccessToken = () => accessToken;
 
+/* ---------- PUBLIC ROUTES (NO AUTH) ---------- */
+const PUBLIC_ROUTES = [
+    '/news',
+    '/news/',
+    '/news/pib',
+];
+
+/* ---------- REQUEST INTERCEPTOR ---------- */
 api.interceptors.request.use(
     (config) => {
-        if (accessToken) {
+        const isPublicRoute = PUBLIC_ROUTES.some(route =>
+            config.url?.startsWith(route)
+        );
+
+        // Attach token ONLY for protected routes
+        if (accessToken && !isPublicRoute) {
             config.headers.Authorization = `Bearer ${accessToken}`;
         }
+
         return config;
     },
     (error) => Promise.reject(error)
 );
 
+/* ---------- RESPONSE INTERCEPTOR ---------- */
 api.interceptors.response.use(
     (response) => response,
     async (error) => {
         const originalRequest = error.config;
 
-        // If 401 and not already retried and NOT a refresh token request
-        if (error.response?.status === 401 && !originalRequest._retry && !originalRequest.url.includes('/auth/refresh')) {
+        const isPublicRoute = PUBLIC_ROUTES.some(route =>
+            originalRequest?.url?.startsWith(route)
+        );
+
+        // ❌ NEVER refresh token for public routes
+        if (isPublicRoute) {
+            return Promise.reject(error);
+        }
+
+        // Refresh token logic only for protected APIs
+        if (
+            error.response?.status === 401 &&
+            !originalRequest._retry &&
+            !originalRequest.url.includes('/auth/refresh')
+        ) {
             originalRequest._retry = true;
 
             try {

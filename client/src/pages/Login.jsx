@@ -16,9 +16,17 @@ const Login = () => {
         setError('');
         setLoadingLocal(true);
         try {
-            await login(email, password);
-            console.log("Logged in successfully, navigating to /hi");
-            navigate('/hi');
+            const response = await login(email, password);
+            // console.log("Logged in successfully"); // Cleaned up for production
+
+            // Navigate based on role from response
+            if (response.user.role === 'ADMIN') {
+                navigate('/admin-dashboard');
+            } else if (response.user.role === 'CANDIDATE') {
+                navigate('/');
+            } else {
+                navigate('/news');
+            }
         } catch (err) {
             console.error(err);
             setError(err.response?.data?.message || 'Failed to login');

@@ -1,0 +1,169 @@
+/* WatResult.css */
+.wat-result-container {
+    background: rgba(17, 24, 39, 0.95);
+    /* Dark background */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    max-width: 1200px;
+    margin: 0 auto;
+    color: #e5e7eb;
+    font-family: 'Inter', sans-serif;
+}
+
+/* HEADER */
+.result-header h2 {
+    font-size: 28px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    color: #fbbf24;
+    /* Amber-400 */
+    text-align: center;
+    margin-bottom: 24px;
+    text-shadow: 0 2px 10px rgba(251, 191, 36, 0.2);
+}
+
+/* OVERALL SCORECARD GRID */
+.scorecard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 16px;
+    margin-bottom: 40px;
+}
+
+.olq-card {
+    background: rgba(31, 41, 55, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: center;
+    transition: transform 0.2s;
+}
+
+.olq-card:hover {
+    transform: translateY(-2px);
+    background: rgba(31, 41, 55, 0.8);
+    border-color: #fbbf24;
+}
+
+.olq-label {
+    display: block;
+    font-size: 13px;
+    color: #9ca3af;
+    text-transform: uppercase;
+    margin-bottom: 8px;
+    font-weight: 600;
+}
+
+.olq-value {
+    font-size: 24px;
+    font-weight: 800;
+}
+
+/* SENTENCE BREAKDOWN TABLE */
+.wat-table-section h3 {
+    font-size: 20px;
+    color: #fff;
+    margin-bottom: 16px;
+    border-left: 4px solid #fbbf24;
+    padding-left: 12px;
+}
+
+.wat-table-container {
+    overflow-x: auto;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.wat-table {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.wat-table th {
+    background: rgba(0, 0, 0, 0.4);
+    padding: 16px;
+    text-align: left;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #9ca3af;
+    font-weight: 700;
+    border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.wat-table td {
+    padding: 14px 16px;
+    background: rgba(31, 41, 55, 0.3);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    vertical-align: middle;
+    font-size: 14px;
+}
+
+.col-word {
+    font-weight: 700;
+    color: #fbbf24;
+    width: 15%;
+}
+
+.col-sentence {
+    color: #d1d5db;
+    font-style: italic;
+    width: 35%;
+}
+
+.col-analysis {
+    width: 50%;
+}
+
+/* MINI BADGES FOR ANALYSIS */
+.mini-badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    margin-right: 6px;
+    margin-bottom: 4px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #9ca3af;
+}
+
+.mini-badge.high {
+    background: rgba(16, 185, 129, 0.15);
+    border-color: rgba(16, 185, 129, 0.4);
+    color: #6ee7b7;
+}
+
+.score-text-high {
+    color: #6ee7b7;
+}
+
+.score-text-mid {
+    color: #fcd34d;
+}
+
+.score-text-low {
+    color: #fca5a5;
+}
+
+/* ANIMATION */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.wat-result-container {
+    animation: fadeIn 0.5s ease-out;
+}

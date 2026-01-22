@@ -1,0 +1,181 @@
+.dashboard-container {
+    min-height: 100vh;
+    background: #0f172a;
+    color: #e2e8f0;
+    font-family: 'Inter', sans-serif;
+    padding: 2rem;
+}
+
+.dashboard-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #334155;
+    padding-bottom: 1rem;
+}
+
+.dashboard-header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+}
+
+.btn-logout {
+    background: transparent;
+    border: 1px solid #ef4444;
+    color: #ef4444;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.dashboard-tabs {
+    display: flex;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.dashboard-tabs button {
+    background: #1e293b;
+    border: none;
+    color: #94a3b8;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.2s;
+}
+
+.dashboard-tabs button.active {
+    background: #3b82f6;
+    color: white;
+}
+
+.dashboard-content {
+    display: grid;
+    gap: 2rem;
+}
+
+.section-slots,
+.section-courses {
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 12px;
+}
+
+.dashboard-form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+    max-width: 600px;
+    margin-bottom: 3rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.form-group label {
+    font-size: 0.9rem;
+    color: #94a3b8;
+}
+
+.form-group input,
+.form-group textarea {
+    background: #0f172a;
+    border: 1px solid #334155;
+    padding: 0.75rem;
+    border-radius: 6px;
+    color: white;
+    font-size: 1rem;
+}
+
+.read-only-input {
+    background: #1e293b;
+    border-color: #475569;
+    color: #94a3b8;
+    cursor: not-allowed;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.btn-primary {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.slots-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.slot-item {
+    display: flex;
+    justify-content: space-between;
+    background: #0f172a;
+    padding: 1rem;
+    border-radius: 6px;
+    margin-bottom: 0.5rem;
+    border: 1px solid #334155;
+    align-items: center;
+}
+
+.slot-info {
+    display: flex;
+    gap: 1.5rem;
+    align-items: center;
+}
+
+.btn-delete {
+    background: transparent;
+    border: 1px solid #dc2626;
+    color: #dc2626;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.btn-delete:hover {
+    background: #dc2626;
+    color: white;
+}
+
+.status.open {
+    color: #22c55e;
+}
+
+.status.booked {
+    color: #f59e0b;
+}
+
+.course-card-mini {
+    background: #0f172a;
+    padding: 1rem;
+    border-radius: 6px;
+    border: 1px solid #334155;
+    margin-bottom: 1rem;
+}
+
+.course-meta {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 1rem;
+    color: #94a3b8;
+    font-size: 0.9rem;
+}
+
+.course-meta a {
+    color: #3b82f6;
+}

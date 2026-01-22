@@ -18,7 +18,7 @@ const Signup = () => {
         setLoadingLocal(true);
         try {
             await signup(email, password, name);
-            navigate('/hi');
+            navigate('/');
         } catch (err) {
             setError(err.response?.data?.message || 'Failed to sign up');
         } finally {

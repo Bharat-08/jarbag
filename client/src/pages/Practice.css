@@ -1,0 +1,96 @@
+.practice-container {
+    min-height: 100vh;
+    background-color: #0d0d0d;
+    color: #e5e5e5;
+    padding: 20px;
+    font-family: 'Inter', sans-serif;
+}
+
+.practice-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+.btn-back {
+    background: transparent;
+    border: 1px solid #444;
+    color: #e5e5e5;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+    gap: 30px;
+    padding-top: 20px;
+}
+
+.video-card {
+    background: #161616;
+    border: 1px solid #333;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+/* --- BULLETPROOF 16:9 ASPECT RATIO --- */
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-top: 56.25%;
+    /* 16:9 Ratio (Height is 56.25% of width) */
+    background: #000;
+    /* Black background so you can see if it renders */
+}
+
+/* LAZY LOAD PLACEHOLDER */
+.video-placeholder {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    background: #222;
+    cursor: pointer;
+    transition: background 0.3s;
+}
+
+.video-placeholder:hover {
+    background: #333;
+}
+
+.play-button {
+    font-size: 3rem;
+    color: white;
+    margin-bottom: 10px;
+}
+
+.video-iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+/* ------------------------------------- */
+
+.video-info {
+    padding: 15px;
+}
+
+.video-info h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #fff;
+}
+
+.no-content {
+    text-align: center;
+    margin-top: 50px;
+    color: #666;
+}

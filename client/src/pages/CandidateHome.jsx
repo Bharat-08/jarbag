@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import UnifiedNavbar from '../components/UnifiedNavbar';
 import "./CandidateHomePage.css";
 // Mapping user requested images to actual existing assets
 import heroImg from "../assets/hero_soldier.png";
@@ -11,48 +12,19 @@ import profilePlaceholder from "../assets/hero_emblem.png"; // Fallback for avat
 
 export default function CandidateHome() {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    // const { user, logout } = useAuth(); // Removed as handled in UnifiedNavbar
+    // const [isMenuOpen, setIsMenuOpen] = React.useState(false); // Removed
 
     return (
         <div className="candidate-home">
 
             {/* TOP NAVBAR */}
-            <nav className="top-navbar">
-                <ul className="top-links">
-                    <li>Posts</li>
-                    <li>Blogs</li>
-                    <li>Practice</li>
-                    <li onClick={() => navigate('/news')}>News</li>
-                </ul>
-
-                <input
-                    type="text"
-                    placeholder="Filter Categories"
-                    className="filter-input"
-                />
-
-                <div className="flex items-center gap-2 cursor-pointer" onClick={logout} title="Logout">
-                    {/* Using the hero emblem or a user initial as avatar */}
-                    <span className="text-sm font-bold mr-2">{user?.name}</span>
-                    <img
-                        src={profilePlaceholder}
-                        alt="profile"
-                        className="top-avatar"
-                    />
-                </div>
-            </nav>
+            {/* UNIFIED NAVBAR */}
+            <UnifiedNavbar />
 
             {/* SECOND NAV */}
-            <div className="sub-navbar">
-                <span>SSB Guidance</span>
-                <span>|</span>
-                <span>Free Mentorship</span>
-                <span>|</span>
-                <span>Free Resources</span>
-                <span>|</span>
-                <span>SSB Courses</span>
-                <span>|</span>
-                <span>About Us</span>
+            {/* SECOND NAV - Removed as per user request */}
+            <div className="sub-navbar" style={{ display: 'none' }}>
             </div>
 
             {/* HERO IMAGE */}
@@ -69,7 +41,8 @@ export default function CandidateHome() {
             {/* CATEGORY CARDS */}
             <section className="category-section">
 
-                <div className="category-card" onClick={() => console.log('Practice')}>
+                {/* Practice Mode Card */}
+                <div className="category-card" onClick={() => navigate('/practice')}>
                     <img
                         src={practiceCard}
                         alt="Practice"
@@ -77,7 +50,8 @@ export default function CandidateHome() {
                     <button className="btn practice">Practice Mode</button>
                 </div>
 
-                <div className="category-card" onClick={() => console.log('Test')}>
+                {/* Test Mode Card */}
+                <div className="category-card" onClick={() => navigate('/test-mode')}>
                     <img
                         src={testCard}
                         alt="Test"
@@ -85,12 +59,12 @@ export default function CandidateHome() {
                     <button className="btn test">Test Mode</button>
                 </div>
 
-                <div className="category-card" onClick={() => console.log('Training')}>
-                    <img
-                        src={trainingCard}
-                        alt="Training"
-                    />
-                    <button className="btn training">Training Mode</button>
+                {/* 1:1 Mentorship Card (Synced with Landing) */}
+                <div className="category-card mentorship-home-card" onClick={() => navigate('/mentor-listing')}>
+                    <div className="mentorship-content">
+                        <h3>1:1 Mentorship</h3>
+                        <p>Connect with experts for guidance.</p>
+                    </div>
                 </div>
 
             </section>
