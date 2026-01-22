@@ -1,9 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
+const jwt = require('jsonwebtoken');
+
+// Middleware (Soft Auth)
+// Middleware (Soft Auth with Refresh Support)
+const extractUser = async (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader?.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        try {
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            req.userId = decoded.id;
+        } catch (error) {
+            // Token is present but invalid/expired. 
+            // Return 401 so client can refresh.
+            return res.status(401).json({ message: 'Invalid or expired token', code: 'TOKEN_EXPIRED' });
+        }
+    }
+    // If no header, proceed as guest
+    next();
+};
 
 // Configuration
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+// Using valid model name
 const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
 
 const OLQS = [
@@ -250,7 +271,7 @@ function aggregateScores(scoreList) {
 }
 
 // --- Route Handler ---
-router.post("/evaluate", async (req, res) => {
+router.post("/evaluate", extractUser, async (req, res) => {
     const { responses } = req.body;
 
     if (!Array.isArray(responses) || responses.length === 0) {
@@ -276,6 +297,35 @@ router.post("/evaluate", async (req, res) => {
         }
 
         const finalScorecard = aggregateScores(sentenceWise.map(s => s.scores));
+
+        // --- Save to Database ---
+        try {
+            // Only save if user is authenticated
+            if (req.userId) {
+                const totalScore = Object.values(finalScorecard).reduce((a, b) => a + Number(b), 0);
+                const percentage = (totalScore / 80) * 100;
+
+                const savedResult = await prisma.examResult.create({
+                    data: {
+                        userId: req.userId,
+                        examName: "WAT Evaluation",
+                        testType: "WAT",
+                        score: Math.round(totalScore),
+                        total: 80,
+                        percentage: parseFloat(percentage.toFixed(1)),
+                        feedback: "WAT Analysis Completed",
+                        responseDetails: sentenceWise.map(s => ({
+                            trigger: s.word,
+                            response: s.response,
+                            scores: s.scores
+                        }))
+                    }
+                });
+                console.log("WAT Result saved:", savedResult.id);
+            }
+        } catch (dbError) {
+            console.error("Failed to save WAT result to DB:", dbError);
+        }
 
         res.json({ sentenceWise, finalScorecard });
     } catch (err) {
