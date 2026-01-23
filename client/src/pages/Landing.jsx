@@ -58,75 +58,66 @@ const Landing = () => {
 
     return (
         <div className="landing-page">
-            {/* 1. Custom ShieldForce Header */}
-            <header className="shield-header">
-                <a href="/" className="shield-brand">
+            {/* 1. Header - Visually synced with UnifiedNavbar (80px, Blur, Border) */}
+            <header className="landing-header">
+                <div className="landing-brand" onClick={() => navigate('/')}>
                     <span className="brand-icon">🛡️</span>
-                    <div className="brand-text">
-                        <span className="brand-name">ShieldForce</span>
-                        <span className="brand-tagline">Prepare. Protect. Prevail.</span>
-                    </div>
-                </a>
+                    <span className="brand-name">ShieldForce</span>
+                </div>
 
-                <nav className="shield-nav">
-                    <a href="#about" className="nav-link">About Us</a>
-                    <a href="#offer" className="nav-link">What We Offer</a>
+                <nav className="landing-nav">
+                    <a href="#about" className="nav-link">About</a>
+                    <a href="#offer" className="nav-link">Features</a>
                     <span onClick={() => navigate('/news')} className="nav-link">News</span>
                 </nav>
 
-                <div className="header-actions">
+                <div className="landing-auth-actions">
                     {!user ? (
                         <>
-                            <button className="btn-login-outline" onClick={() => navigate('/login')}>
+                            <button className="btn-login-ghost" onClick={() => navigate('/login')}>
                                 Login
                             </button>
-                            <div className="mentor-join-wrapper">
-                                <button className="btn-join-gold" onClick={() => navigate('/mentor-registration')}>
-                                    Join as Mentor
-                                </button>
-                            </div>
+                            <button className="btn-join-gold" onClick={() => navigate('/mentor-registration')}>
+                                Join as Mentor
+                            </button>
                         </>
                     ) : (
-                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <div className="landing-user-controls">
                             {!user.isPremium && (
                                 <button className="btn-unlock-premium" onClick={() => setIsPremiumModalOpen(true)}>
-                                    <span>👑</span> Unlock Premium
+                                    <span>👑</span> Premium
                                 </button>
                             )}
-                            <div className="profile-container-relative" style={{ position: 'relative' }} ref={landingDropdownRef}>
-                                <div className="profile-container" onClick={() => setShowProfileMenu(!showProfileMenu)}>
-                                    <span className="profile-name">{user.name || 'User'}</span>
-                                    <div className="profile-icon">
-                                        <img src={heroEmblem} alt="Profile" />
-                                    </div>
+
+                            <div className="landing-profile-wrapper" ref={landingDropdownRef}>
+                                <div className="landing-profile-trigger" onClick={() => setShowProfileMenu(!showProfileMenu)}>
+                                    <span className="user-name-display">{user.name || 'User'}</span>
+                                    <img src={heroEmblem} alt="Profile" className="landing-avatar" />
                                 </div>
 
-                                {/* Profile Dropdown Menu */}
                                 {showProfileMenu && (
-                                    <div className="profile-dropdown">
-                                        <div className="dropdown-header">
-                                            <h4>{user.name || 'User'}</h4>
-                                            <span className="user-email">{user.email || 'user@shieldforce.in'}</span>
+                                    <div className="landing-dropdown-menu">
+                                        <div className="dropdown-user-info">
+                                            <div className="u-name">{user.name || 'User'}</div>
+                                            <div className="u-email">{user.email}</div>
                                         </div>
-
                                         <div className="dropdown-divider"></div>
-
-                                        <div className="dropdown-row">
-                                            <span className="row-label">Plan:</span>
-                                            <span className={`plan-badge ${user.isPremium ? 'premium' : 'free'}`}>
-                                                {user.isPremium ? 'PREMIUM 👑' : 'FREE'}
+                                        <div className="dropdown-item">
+                                            <span>Plan</span>
+                                            <span className={`plan-tag ${user.isPremium ? 'premium' : 'free'}`}>
+                                                {user.isPremium ? 'PRO' : 'FREE'}
                                             </span>
                                         </div>
                                         {user.isPremium && (
-                                            <div className="dropdown-row">
-                                                <span className="row-label">Expires:</span>
-                                                <span className="row-value">{user.subscriptionEndDate ? new Date(user.subscriptionEndDate).toLocaleDateString() : 'Lifetime'}</span>
+                                            <div className="dropdown-item date-row">
+                                                <span>Expires:</span>
+                                                <span className="date-val">
+                                                    {user.subscriptionEndDate ? new Date(user.subscriptionEndDate).toLocaleDateString() : 'Lifetime'}
+                                                </span>
                                             </div>
                                         )}
-
                                         <div className="dropdown-divider"></div>
-
-                                        <button className="btn-logout" onClick={handleLogout}>
+                                        <button className="btn-logout-full" onClick={handleLogout}>
                                             Logout
                                         </button>
                                     </div>
@@ -137,73 +128,66 @@ const Landing = () => {
                 </div>
             </header>
 
-            {/* 2. Hero Section */}
-            <section className="hero-section">
-                <div className="hero-content">
-                    <div className="headline-wrapper">
-                        <div className="headline-line"></div>
-                        <h1 className="hero-headline">
-                            Do You<br />
-                            Have It<br />
-                            <span className="text-gold shimmer-text">In You <span className="question-mark">?</span></span>
-                        </h1>
-                    </div>
-                    <p className="hero-subtext">
+            {/* 2. Hero Section - Synced Red/Black Gradient Background */}
+            <section className="landing-hero">
+                <div className="hero-text-container">
+                    <h1 className="hero-title">
+                        DO YOU HAVE IT<br />
+                        <span className="text-highlight">IN YOU?</span>
+                    </h1>
+                    <p className="hero-description">
                         The nation calls for the brave. Join the elite community of defence aspirants and forge your path to the academy with ShieldForce.
                     </p>
-                    <div className="cta-wrapper">
-                        <button className="btn-hero-tactical" onClick={handleGetStarted}>
-                            Get Started <span className="tactical-arrow">→</span>
-                        </button>
-                    </div>
+                    <button className="btn-cta-primary" onClick={handleGetStarted}>
+                        Get Started <span className="icon-arrow">→</span>
+                    </button>
                 </div>
-                <div className="hero-visual">
-                    <img src={heroEmblem} alt="Defence Emblem" className="hero-emblem" />
+                <div className="hero-image-container">
+                    <img src={heroEmblem} alt="ShieldForce Emblem" className="hero-img-responsive" />
                 </div>
             </section>
 
-            {/* 3. About Us Section */}
-            <section id="about" className="shield-section about-section">
-                <div className="about-grid">
-                    <div className="about-text">
-                        <h2 className="section-title">Who We Are<span className="text-gold">.</span></h2>
-                        <p className="section-desc">
+            {/* 3. About Section */}
+            <section id="about" className="landing-section">
+                <div className="section-content split-layout">
+                    <div className="text-block">
+                        <h2 className="section-heading">Who We Are<span className="dot-accent">.</span></h2>
+                        <p className="text-body">
                             We are a dedicated team of veterans and experts committed to guiding the next generation of officers. ShieldForce provides a disciplined, structured environment to prepare for SSB interviews and written exams.
                         </p>
-                        <h3>Mission</h3>
-                        <p>To provide accessible, high-quality mentorship to every defence aspirant in India.</p>
+                        <div className="mission-highlight">
+                            <h3>Our Mission</h3>
+                            <p>To provide accessible, high-quality mentorship to every defence aspirant in India.</p>
+                        </div>
                     </div>
-
-                    {/* Mission Visual Placeholder */}
-                    <div className="about-visual mission-placeholder">
-                        <div className="mission-content">
-                            <span className="mission-icon">🎯</span>
-                            <h4>Our Mission</h4>
-                            <p>Forging Future Leaders</p>
+                    <div className="visual-block placeholder-visual">
+                        <div className="visual-center">
+                            <span className="visual-emoji">🎯</span>
+                            <h4>Forging Leaders</h4>
                         </div>
                     </div>
                 </div>
             </section>
 
-            {/* 4. What We Offer */}
-            <section id="offer" className="shield-section">
-                <h2 className="section-title">What We Offer<span className="text-gold">.</span></h2>
-                <p className="section-desc">Comprehensive tools designed for your success.</p>
+            {/* 4. Features / Offer Section - Cards matched to Dashboard */}
+            <section id="offer" className="landing-section">
+                <h2 className="section-heading center-text">What We Offer<span className="dot-accent">.</span></h2>
+                <p className="section-subheading center-text">Comprehensive tools designed for your success.</p>
 
-                <div className="offer-grid">
-                    <div className="offer-card" onClick={() => navigate('/features/assessments')}>
+                <div className="features-grid">
+                    <div className="feature-card" onClick={() => navigate('/features/assessments')}>
                         <div className="card-icon">📝</div>
                         <h3>Live Assessments</h3>
                         <p>Experience realistic TAT, WAT & SRT. View examples and understand how AI analyzes your responses.</p>
                     </div>
 
-                    <div className="offer-card" onClick={() => navigate('/features/content')}>
+                    <div className="feature-card" onClick={() => navigate('/features/content')}>
                         <div className="card-icon">🎥</div>
                         <h3>Expert Content</h3>
                         <p>Learn from the best. Top mentors from around the globe share exclusive strategies and insights.</p>
                     </div>
 
-                    <div className="offer-card" onClick={() => navigate('/features/mentorship')}>
+                    <div className="feature-card" onClick={() => navigate('/features/mentorship')}>
                         <div className="card-icon">🤝</div>
                         <h3>1:1 Mentorship</h3>
                         <p>Your personal roadmap to success. Click to understand our step-by-step guidance process.</p>
@@ -211,20 +195,21 @@ const Landing = () => {
                 </div>
             </section>
 
-            {/* 5. News Preview */}
-            <section id="news" className="shield-section" style={{ background: '#0a0a0a' }}>
-                <h2 className="section-title">Defence Chronicles<span className="text-gold">.</span></h2>
-                <p className="section-desc">Stay updated with the latest notifications and strategic affairs.</p>
-
-                <div className="news-preview">
-                    <button className="btn-news" onClick={() => navigate('/news')}>
-                        Read Latest Updates →
+            {/* 5. News CTA */}
+            <section id="news" className="landing-section news-cta-section">
+                <div className="news-banner-card">
+                    <div className="news-info">
+                        <h2>Defence Chronicles</h2>
+                        <p>Stay updated with the latest notifications and strategic affairs.</p>
+                    </div>
+                    <button className="btn-outline-gold" onClick={() => navigate('/news')}>
+                        Read Updates
                     </button>
                 </div>
             </section>
 
             {/* Footer */}
-            <footer style={{ padding: '2rem 6%', borderTop: '1px solid #222', textAlign: 'center', color: '#555', fontSize: '0.9rem' }}>
+            <footer className="landing-footer">
                 &copy; {new Date().getFullYear()} ShieldForce. All Rights Reserved. Jai Hind.
             </footer>
 
