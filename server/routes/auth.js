@@ -88,6 +88,32 @@ router.post('/signup', async (req, res) => {
         const existingUser = await prisma.user.findUnique({ where: { email } });
         if (existingUser) return res.status(400).json({ message: 'User already exists' });
 
+        // Validate Name (No spaces-only, no objects/nonsense heuristics)
+        const trimmedName = name.trim();
+        if (!trimmedName || trimmedName.length < 2) {
+            return res.status(400).json({ message: 'Name must be at least 2 characters long.' });
+        }
+
+        // Regex: authentic name validation
+        // Allows: Alphabets, spaces, hyphens, apostrophes (e.g. O'Connor, Jean-Luc)
+        // Disallows: Numbers, other special characters, multiple spaces in a row
+        const nameRegex = /^[a-zA-Z\u00C0-\u00FF' -]+$/;
+
+        if (!nameRegex.test(trimmedName)) {
+            return res.status(400).json({ message: 'Name contains invalid characters. Please use a proper name.' });
+        }
+
+        if (trimmedName.includes("  ")) {
+            return res.status(400).json({ message: 'Name contains improper spacing.' });
+        }
+
+        // Check for suspicious "object" names or generic terms (basic blacklist)
+        const lowerName = trimmedName.toLowerCase();
+        const forbiddenNames = ['admin', 'administrator', 'user', 'test', 'unknown', 'anonymous', 'null', 'undefined', 'object', 'chair', 'table', 'computer'];
+        if (forbiddenNames.includes(lowerName)) {
+            return res.status(400).json({ message: 'Please use your real name.' });
+        }
+
         const hashedPassword = await bcrypt.hash(password, 10);
 
         // Normalize and validate role

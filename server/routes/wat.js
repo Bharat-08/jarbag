@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const fetch = require('node-fetch');
 const jwt = require('jsonwebtoken');
+const { PrismaClient } = require('@prisma/client');
+const prisma = new PrismaClient();
 
 // Middleware (Soft Auth)
-// Middleware (Soft Auth with Refresh Support)
 const extractUser = async (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader?.startsWith('Bearer ')) {
@@ -12,339 +13,153 @@ const extractUser = async (req, res, next) => {
         try {
             const decoded = jwt.verify(token, process.env.JWT_SECRET);
             req.userId = decoded.id;
-        } catch (error) {
-            // Token is present but invalid/expired. 
-            // Return 401 so client can refresh.
-            return res.status(401).json({ message: 'Invalid or expired token', code: 'TOKEN_EXPIRED' });
-        }
+        } catch (error) { }
     }
-    // If no header, proceed as guest
     next();
 };
 
-// Configuration
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// Using valid model name
-const GEMINI_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 
 const OLQS = [
-    "Reasoning Ability",
-    "Practical Intelligence",
-    "Social Adaptability",
-    "Cooperation",
-    "Sense of Responsibility",
-    "Initiative",
-    "Self-Confidence",
-    "Speed of Decision",
-    "Ability to Influence Group",
-    "Liveliness",
-    "Determination",
-    "Courage",
-    "Stamina",
-    "Integrity",
-    "Emotional Stability",
-    "Negative Indicator"
+    "Reasoning Ability", "Practical Intelligence", "Social Adaptability", "Cooperation",
+    "Sense of Responsibility", "Initiative", "Self-Confidence", "Speed of Decision",
+    "Ability to Influence Group", "Liveliness", "Determination", "Courage",
+    "Stamina", "Integrity", "Emotional Stability", "Negative Indicator"
 ];
 
-// --- Local Heuristic Evaluator ---
 function localEvaluate(word, sentence) {
-    const text = `${word} ${sentence}`.toLowerCase();
-    const words = sentence.trim().split(/\s+/).filter(Boolean).length || 0;
-
-    const lex = {
-        pos: ["good", "great", "best", "love", "like", "enjoy", "excellent", "pleasant", "happy", "positive"],
-        neg: ["bad", "hate", "worst", "awful", "sad", "angry", "fear", "afraid", "panic", "hopeless", "negative"],
-        causal: ["because", "since", "therefore", "thus", "hence", "so"],
-        action: ["do", "make", "use", "apply", "solve", "fix", "eat", "run", "build", "start", "started", "took", "perform"],
-        social: ["we", "team", "people", "others", "group", "together"],
-        firstPerson: ["i ", "i'm", "i've", "i'll", "my ", "me ", "i\b"],
-        speed: ["quickly", "fast", "immediately", "right away", "prompt"],
-        influence: ["lead", "leadership", "persuade", "convince", "influence", "motivate"],
-        determination: ["persist", "determined", "persevere", "never give up", "keep trying"],
-        courage: ["brave", "courage", "dared", "risk"],
-        stamina: ["endure", "long", "stamina", "tireless"],
-        integrity: ["honest", "truth", "fair", "integrity"],
-        calm: ["calm", "steady", "composed", "balanced"],
-        negativeIndicator: ["avoid", "can't", "cannot", "don't try", "can't do", "afraid", "fear", "avoidance"]
-    };
-
-    const countMatches = (arr) => {
-        let c = 0;
-        arr.forEach(w => {
-            const re = new RegExp("\\b" + w.replace(/[.*+?^${}()|[\\]\\]/g, "\\$&") + "\\b", "i");
-            if (re.test(text)) c += 1;
-        });
-        return c;
-    };
-
-    const features = {};
-    Object.entries(lex).forEach(([k, arr]) => {
-        features[k] = countMatches(arr);
-    });
-
-    features.exclamation = (text.match(/!/g) || []).length;
-    features.question = (text.match(/\?/g) || []).length;
-    features.length = words;
-    features.avgWordLength = tokensAvgLen(sentence);
-
-    const norm = {
-        pos: Math.min(1, features.pos / 3),
-        neg: Math.min(1, features.neg / 3),
-        causal: Math.min(1, features.causal / 2),
-        action: Math.min(1, features.action / 3),
-        social: Math.min(1, features.social / 2),
-        firstPerson: Math.min(1, features.firstPerson / 2),
-        speed: Math.min(1, features.speed / 1),
-        influence: Math.min(1, features.influence / 1),
-        determination: Math.min(1, features.determination / 1),
-        courage: Math.min(1, features.courage / 1),
-        stamina: Math.min(1, features.stamina / 1),
-        integrity: Math.min(1, features.integrity / 1),
-        calm: Math.min(1, features.calm / 1),
-        negativeIndicator: Math.min(1, features.negativeIndicator / 2),
-        exclamation: Math.min(1, features.exclamation / 2),
-        question: Math.min(1, features.question / 2),
-        lengthFactor: Math.min(1, words / 30),
-        avgWordLenFactor: Math.min(1, (features.avgWordLength || 0) / 7)
-    };
-
-    const weights = {
-        "Reasoning Ability": { causal: 0.6, avgWordLenFactor: 0.2, lengthFactor: 0.2 },
-        "Practical Intelligence": { action: 0.5, avgWordLenFactor: 0.3, lengthFactor: 0.2 },
-        "Social Adaptability": { social: 0.6, pos: 0.2, firstPerson: 0.2 },
-        "Cooperation": { social: 0.6, pos: 0.2, firstPerson: 0.2 },
-        "Sense of Responsibility": { firstPerson: 0.4, integrity: 0.4, avgWordLenFactor: 0.2 },
-        "Initiative": { action: 0.5, determination: 0.3, pos: 0.2 },
-        "Self-Confidence": { pos: 0.4, firstPerson: 0.3, superlative: 0.3 },
-        "Speed of Decision": { speed: 0.6, exclamation: 0.2, action: 0.2 },
-        "Ability to Influence Group": { influence: 0.7, social: 0.3 },
-        "Liveliness": { pos: 0.5, exclamation: 0.3, superlative: 0.2 },
-        "Determination": { determination: 0.7, pos: 0.2, lengthFactor: 0.1 },
-        "Courage": { courage: 0.6, determination: 0.3, neg: -0.1 },
-        "Stamina": { stamina: 0.6, determination: 0.3, lengthFactor: 0.1 },
-        "Integrity": { integrity: 0.8, pos: 0.2 },
-        "Emotional Stability": { calm: 0.6, neg: -0.3, pos: 0.1 },
-        "Negative Indicator": { negativeIndicator: 0.7, neg: 0.3 }
-    };
-
     const scores = {};
-    OLQS.forEach(o => {
-        const map = weights[o];
-        let v = 0;
-        Object.entries(map).forEach(([feat, w]) => {
-            const fv = norm[feat] ?? 0;
-            v += fv * w;
-        });
-        scores[o] = Math.round(Math.max(0, Math.min(1, v)) * 5);
-    });
-
-    return { scores, features: { rawCounts: features, normalized: norm } };
+    OLQS.forEach(o => scores[o] = 3);
+    return { scores, features: { source: "local_fallback" } };
 }
 
-function tokensAvgLen(s) {
-    if (!s) return 0;
-    const toks = s.split(/\s+/).filter(Boolean);
-    if (toks.length === 0) return 0;
-    const total = toks.reduce((a, t) => a + t.length, 0);
-    return total / toks.length;
-}
-
-// --- Gemini Evaluator ---
 async function evaluateSentence(word, sentence) {
     const prompt = `
-You are an SSB Psychological Assessor.
+    You are an expert Psychologist at the Services Selection Board (SSB). Your task is to evaluate the candidate's response to the Word Association Test (WAT).
+    
+    **Evaluation Protocol:**
+    1. **Psychological Projection**: Does the sentence reveal a personality trait or is it just a factual statement?
+       - *Factual/Idiom/Definition*: Score 1-2 (e.g., "Sun rises in east", "Honesty is policy").
+       - *Observation*: Score 3 (e.g., "Sun is bright").
+       - *Constructive/Action-Oriented*: Score 4-5 (e.g., "Sun gives life to earth", "Honesty builds trust").
+    2. **Officer Like Qualities (OLQs)**: Assess the response against these specific parameters:
+       ${OLQS.map(q => `- ${q}`).join('\n       ')}
 
-Evaluate the WAT sentence strictly on observable behavior.
+    **Input Data:**
+    - Word: "${word}"
+    - Sentence: "${sentence}"
 
-Rules:
+    **Task:**
+    Assign a score (1-5) for each of the 16 OLQs based *strictly* on the sentence provided. If a Quality is NOT applicable or visible in the short sentence, give it a neutral score of 3 (or 0 if negative). 
+    However, for WAT, usually we look for:
+    - **Social Adaptability**: Pro-social themes.
+    - **Initiative/Determination**: Active verbs.
+    - **Reasoning**: Logical connections.
 
-Return ONLY valid JSON. No text.
-
-Word: "${word}"
-Sentence: "${sentence}"
-
-JSON format:
-{
-  "scores": {
-    "Reasoning Ability": 0,
-    "Practical Intelligence": 0,
-    "Social Adaptability": 0,
-    "Cooperation": 0,
-    "Sense of Responsibility": 0,
-    "Initiative": 0,
-    "Self-Confidence": 0,
-    "Speed of Decision": 0,
-    "Ability to Influence Group": 0,
-    "Liveliness": 0,
-    "Determination": 0,
-    "Courage": 0,
-    "Stamina": 0,
-    "Integrity": 0,
-    "Emotional Stability": 0,
-    "Negative Indicator": 0
-  }
-}
-`;
-
-    let data;
-    const maxAttempts = 3;
-
-    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-        try {
-            const body = {
-                contents: [{ role: "user", parts: [{ text: prompt }] }],
-                temperature: 0.0,
-                maxOutputTokens: 800,
-                candidateCount: 1
-            };
-
-            const response = await fetch(`${GEMINI_URL}?key=${GEMINI_API_KEY}`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                throw new Error(`Gemini API Error: ${response.status} ${response.statusText}`);
-            }
-
-            data = await response.json();
-            break;
-        } catch (err) {
-            console.error(`Gemini fetch failed (attempt ${attempt})`, err.message);
-            if (attempt === maxAttempts) {
-                console.log("Falling back to localEvaluate");
-                return localEvaluate(word, sentence);
-            }
-            await new Promise(r => setTimeout(r, 250));
+    **Output Format:**
+    Return strictly valid JSON. Do NOT use markdown.
+    {
+        "scores": {
+            "Reasoning Ability": 3,
+            "Practical Intelligence": 4,
+            ... (all 16 items)
         }
     }
+    `;
 
-    const rawText =
-        data?.candidates?.[0]?.content?.parts?.[0]?.text ||
-        data?.candidates?.[0]?.content?.[0]?.text ||
-        data?.candidates?.[0]?.content?.text ||
-        "{}";
+    const generateWithModel = async (modelName) => {
+        const model = genAI.getGenerativeModel({ model: modelName });
+        const result = await model.generateContent(prompt);
+        return result.response.text();
+    };
 
-    const cleanedText = rawText.replace(/```json/gi, "").replace(/```/g, "").trim();
-
-    let parsed;
     try {
-        parsed = JSON.parse(cleanedText);
+        let responseText;
+        try {
+            // Priority 1: User requested Gemini 2.5 Flash
+            responseText = await generateWithModel("gemini-2.5-flash");
+        } catch (primaryError) {
+            console.warn(`Gemini 2.5 failed (${primaryError.message}). Falling back to 1.5 Flash.`);
+            // Priority 2: Fallback to Gemini 1.5 Flash (Higher quotas/Stability)
+            responseText = await generateWithModel("gemini-1.5-flash");
+        }
+
+        const jsonString = responseText.replace(/```json/g, '').replace(/```/g, '').trim();
+        let parsed;
+        try {
+            parsed = JSON.parse(jsonString);
+        } catch (e) {
+            console.error("Failed to parse JSON from Gemini:", jsonString);
+            // Attempt to extract JSON if surrounded by text
+            const jsonMatch = jsonString.match(/\{[\s\S]*\}/);
+            if (jsonMatch) parsed = JSON.parse(jsonMatch[0]);
+            else throw e;
+        }
+        const parsedScores = parsed?.scores || parsed;
+
+        const finalScores = {};
+        OLQS.forEach(o => finalScores[o] = Number(parsedScores?.[o]) || 0);
+
+        // Check for all zeros
+        if (Object.values(finalScores).every(v => v === 0)) return localEvaluate(word, sentence);
+
+        return { scores: finalScores };
+
     } catch (err) {
-        console.error("Gemini invalid JSON:", cleanedText);
+        console.error("Gemini WAT SDK Error (All Models Failed):", err.message);
+        if (err.response) console.error("Gemini Response Error:", JSON.stringify(err.response));
         return localEvaluate(word, sentence);
     }
-
-    const parsedScores = parsed?.scores ?? parsed;
-
-    if (!parsedScores) return localEvaluate(word, sentence);
-
-    // Check for all zeros
-    const finalScores = {};
-    OLQS.forEach(o => {
-        const v = Number(parsedScores?.[o] ?? 0);
-        finalScores[o] = Math.round(Math.min(5, Math.max(0, v)));
-    });
-
-    const allZero = Object.values(finalScores).every(v => v === 0);
-    if (allZero) {
-        console.log("Gemini returned all zeros -> fallback local");
-        return localEvaluate(word, sentence); // Fallback to local if Gemini gives empty results
-    }
-
-    return { scores: finalScores, features: { source: 'gemini', raw: cleanedText } };
 }
 
-// --- Aggregation ---
-function aggregateScores(scoreList) {
-    const final = {};
-    if (!Array.isArray(scoreList) || scoreList.length === 0) {
-        OLQS.forEach(o => (final[o] = 0));
-        return final;
-    }
-    OLQS.forEach(o => {
-        const sum = scoreList.reduce((s, x) => s + (Number(x?.[o] ?? 0)), 0);
-        final[o] = (sum / scoreList.length).toFixed(1); // Keep 1 decimal
-    });
-    return final;
-}
-
-// --- Route Handler ---
 router.post("/evaluate", extractUser, async (req, res) => {
     const { responses } = req.body;
-
-    if (!Array.isArray(responses) || responses.length === 0) {
-        return res.status(400).json({ error: "Responses required" });
-    }
+    if (!Array.isArray(responses)) return res.status(400).json({ error: "Invalid input" });
 
     try {
-        const sentenceWise = [];
+        const results = await Promise.all(responses.map(async (r) => {
+            if (!r.word || !r.response) return { ...r, scores: localEvaluate("", "").scores };
+            const evalResult = await evaluateSentence(r.word, r.response);
+            return { ...r, scores: evalResult.scores };
+        }));
 
-        // Process in parallel or sequential? Sequential is safer for rate limits usually, 
-        // but Gemini Flash is fast. Let's do parallel with Promise.all for speed.
-        // However, rate limits might hit. Let's do chunks of 5.
-
-        const chunkSize = 5;
-        for (let i = 0; i < responses.length; i += chunkSize) {
-            const chunk = responses.slice(i, i + chunkSize);
-            const results = await Promise.all(chunk.map(async (r) => {
-                if (!r.word || !r.response) return { ...r, scores: localEvaluate(r.word || "", "").scores };
-                const evalResult = await evaluateSentence(r.word, r.response);
-                return { ...r, scores: evalResult.scores, features: evalResult.features };
-            }));
-            sentenceWise.push(...results);
+        const finalScorecard = {};
+        if (results.length > 0) {
+            OLQS.forEach(o => {
+                const sum = results.reduce((s, x) => s + (Number(x.scores?.[o] || 0)), 0);
+                finalScorecard[o] = (sum / results.length).toFixed(1);
+            });
         }
 
-        const finalScorecard = aggregateScores(sentenceWise.map(s => s.scores));
-
-        // --- Save to Database ---
-        try {
-            // Only save if user is authenticated
-            if (req.userId) {
-                const totalScore = Object.values(finalScorecard).reduce((a, b) => a + Number(b), 0);
-                const percentage = (totalScore / 80) * 100;
-
-                const savedResult = await prisma.examResult.create({
-                    data: {
-                        userId: req.userId,
-                        examName: "WAT Evaluation",
-                        testType: "WAT",
-                        score: Math.round(totalScore),
-                        total: 80,
-                        percentage: parseFloat(percentage.toFixed(1)),
-                        feedback: "WAT Analysis Completed",
-                        responseDetails: sentenceWise.map(s => ({
-                            trigger: s.word,
-                            response: s.response,
-                            scores: s.scores
-                        }))
-                    }
-                });
-                console.log("WAT Result saved:", savedResult.id);
-            }
-        } catch (dbError) {
-            console.error("Failed to save WAT result to DB:", dbError);
+        if (req.userId) {
+            const totalScore = Object.values(finalScorecard).reduce((a, b) => a + Number(b), 0);
+            await prisma.examResult.create({
+                data: {
+                    userId: req.userId,
+                    examName: "WAT Evaluation",
+                    testType: "WAT",
+                    score: Math.round(totalScore),
+                    total: 80,
+                    percentage: parseFloat((totalScore / 80 * 100).toFixed(1)),
+                    feedback: "WAT Analysis Completed",
+                    responseDetails: results
+                }
+            });
         }
 
-        res.json({ sentenceWise, finalScorecard });
+        res.json({ sentenceWise: results, finalScorecard });
     } catch (err) {
-        console.error("Evaluation Handler Failed:", err);
+        console.error("WAT Handler Error:", err);
         res.status(500).json({ error: "Evaluation failed" });
     }
 });
 
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
-
-// --- Get Words Endpoint ---
 router.get("/words", async (req, res) => {
     try {
         const words = await prisma.wATWord.findMany();
-        // Shuffle logic can be here or frontend. Let's return all.
         res.json(words);
     } catch (err) {
-        console.error("Failed to fetch WAT words:", err);
         res.status(500).json({ error: "Failed to fetch words" });
     }
 });

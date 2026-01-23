@@ -124,7 +124,7 @@ router.get('/mentors', verifyAdmin, async (req, res) => {
 
 // POST /upload/tat
 router.post('/upload/tat', verifyAdmin, async (req, res) => {
-    const { url, description1, description2, description3 } = req.body;
+    const { url, descriptions } = req.body; // Expecting { url: "...", descriptions: ["theme1", "theme2"] }
 
     if (!url) {
         return res.status(400).json({ error: 'Image URL is required' });
@@ -134,9 +134,7 @@ router.post('/upload/tat', verifyAdmin, async (req, res) => {
         const newImage = await prisma.tATImage.create({
             data: {
                 url,
-                description1: description1 || '',
-                description2: description2 || '',
-                description3: description3 || ''
+                descriptions: descriptions || []
             }
         });
         res.status(201).json({ message: 'TAT Image uploaded successfully', image: newImage });
