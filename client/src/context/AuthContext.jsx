@@ -49,14 +49,22 @@ export const AuthProvider = ({ children }) => {
         setUser(null);
     }, []);
 
+    const upgradeToPremium = useCallback(async () => {
+        const res = await api.post('/auth/upgrade');
+        setAccessToken(res.data.accessToken);
+        setUser(res.data.user);
+        return res.data;
+    }, []);
+
     // Memoize the value to prevent unnecessary re-renders
     const value = useMemo(() => ({
         user,
         loading,
         login,
         signup,
-        logout
-    }), [user, loading, login, signup, logout]);
+        logout,
+        upgradeToPremium
+    }), [user, loading, login, signup, logout, upgradeToPremium]);
 
     return (
         <AuthContext.Provider value={value}>

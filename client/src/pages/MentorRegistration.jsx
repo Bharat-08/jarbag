@@ -47,6 +47,32 @@ const MentorRegistration = () => {
             return;
         }
 
+        // Validate Name
+        const trimmedName = formData.name.trim();
+        const nameRegex = /^[a-zA-Z\u00C0-\u00FF' -]+$/;
+        if (trimmedName.length < 2) {
+            setError('Name must be at least 2 characters long.');
+            setLoading(false);
+            return;
+        }
+        if (!nameRegex.test(trimmedName)) {
+            setError('Name contains invalid characters. Please use a proper name.');
+            setLoading(false);
+            return;
+        }
+        if (trimmedName.includes("  ")) {
+            setError('Name contains improper spacing.');
+            setLoading(false);
+            return;
+        }
+        const lowerName = trimmedName.toLowerCase();
+        const forbiddenNames = ['admin', 'administrator', 'user', 'test', 'unknown', 'anonymous', 'null', 'undefined', 'object', 'chair', 'table'];
+        if (forbiddenNames.includes(lowerName)) {
+            setError('Please use your real name.');
+            setLoading(false);
+            return;
+        }
+
         if (!file) {
             setError('Please upload a document.');
             setLoading(false);

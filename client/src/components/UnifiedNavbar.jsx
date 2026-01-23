@@ -2,15 +2,31 @@ import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import profilePlaceholder from "../assets/hero_emblem.png"; // Ensure this path is correct relative to components folder
+import PremiumModal from './PremiumModal';
 import './UnifiedNavbar.css';
 
 const UnifiedNavbar = ({ hideLinks = false }) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { user, logout } = useAuth();
+    const { user, logout, upgradeToPremium } = useAuth();
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const [isPremiumModalOpen, setIsPremiumModalOpen] = useState(false);
+    const [isUpgrading, setIsUpgrading] = useState(false);
     const dropdownRef = React.useRef(null);
+
+    const handleUpgrade = async () => {
+        setIsUpgrading(true);
+        try {
+            await upgradeToPremium();
+            setIsPremiumModalOpen(false);
+            // Optionally add toast success here
+        } catch (error) {
+            console.error("Upgrade failed:", error);
+            // Optionally add toast error here
+        } finally {
+            setIsUpgrading(false);
+        }
+    };
 
     // Close dropdown when clicking outside
     React.useEffect(() => {
@@ -129,26 +145,12 @@ const UnifiedNavbar = ({ hideLinks = false }) => {
             </nav>
 
             {/* PREMIUM MODAL */}
-            {isPremiumModalOpen && (
-                <div className="premium-modal-overlay">
-                    <div className="premium-modal-content">
-                        <span className="pm-icon">👑</span>
-                        <h2 className="pm-title">Unlock Premium Access</h2>
-                        <p className="pm-message">
-                            Gain access to unlimited WAT/TAT evaluations, detailed AI analytics, 1-on-1 mentorship, and exclusive study materials.
-                        </p>
-                        <button
-                            className="pm-btn-contact"
-                            onClick={() => window.open('mailto:support@shieldforce.com?subject=Premium Access Request', '_blank')}
-                        >
-                            Contact for Access
-                        </button>
-                        <button className="pm-btn-close" onClick={() => setIsPremiumModalOpen(false)}>
-                            Maybe Later
-                        </button>
-                    </div>
-                </div>
-            )}
+            <PremiumModal
+                isOpen={isPremiumModalOpen}
+                onClose={() => setIsPremiumModalOpen(false)}
+                onConfirm={handleUpgrade}
+                isLoading={isUpgrading}
+            />
         </>
     );
 };

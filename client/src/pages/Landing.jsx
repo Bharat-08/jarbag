@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 // Images
 import heroEmblem from '../assets/hero_emblem.png';
+import PremiumModal from '../components/PremiumModal';
 
 import './Landing.css';
 
 const Landing = () => {
     const navigate = useNavigate();
-    const { user, logout } = useAuth();
+    const { user, logout, upgradeToPremium } = useAuth();
     const [showProfileMenu, setShowProfileMenu] = React.useState(false);
+    const [isPremiumModalOpen, setIsPremiumModalOpen] = React.useState(false);
+    const [isUpgrading, setIsUpgrading] = React.useState(false);
     const landingDropdownRef = React.useRef(null);
 
     // Close dropdown when clicking outside
@@ -39,6 +42,18 @@ const Landing = () => {
         await logout();
         navigate('/');
         setShowProfileMenu(false);
+    };
+
+    const handleUpgrade = async () => {
+        setIsUpgrading(true);
+        try {
+            await upgradeToPremium();
+            setIsPremiumModalOpen(false);
+        } catch (error) {
+            console.error("Upgrade failed:", error);
+        } finally {
+            setIsUpgrading(false);
+        }
     };
 
     return (
@@ -74,7 +89,7 @@ const Landing = () => {
                     ) : (
                         <div style={{ display: 'flex', alignItems: 'center' }}>
                             {!user.isPremium && (
-                                <button className="btn-unlock-premium" onClick={() => navigate('/#offer')}>
+                                <button className="btn-unlock-premium" onClick={() => setIsPremiumModalOpen(true)}>
                                     <span>👑</span> Unlock Premium
                                 </button>
                             )}
@@ -212,6 +227,13 @@ const Landing = () => {
             <footer style={{ padding: '2rem 6%', borderTop: '1px solid #222', textAlign: 'center', color: '#555', fontSize: '0.9rem' }}>
                 &copy; {new Date().getFullYear()} ShieldForce. All Rights Reserved. Jai Hind.
             </footer>
+
+            <PremiumModal
+                isOpen={isPremiumModalOpen}
+                onClose={() => setIsPremiumModalOpen(false)}
+                onConfirm={handleUpgrade}
+                isLoading={isUpgrading}
+            />
         </div>
     );
 };

@@ -16,6 +16,33 @@ const Signup = () => {
         e.preventDefault();
         setError('');
         setLoadingLocal(true);
+
+        // Validate Name
+        const trimmedName = name.trim();
+        const nameRegex = /^[a-zA-Z\u00C0-\u00FF' -]+$/;
+        if (trimmedName.length < 2) {
+            setError('Name must be at least 2 characters long.');
+            setLoadingLocal(false);
+            return;
+        }
+        if (!nameRegex.test(trimmedName)) {
+            setError('Name contains invalid characters. Please use a proper name.');
+            setLoadingLocal(false);
+            return;
+        }
+        if (trimmedName.includes("  ")) {
+            setError('Name contains improper spacing.');
+            setLoadingLocal(false);
+            return;
+        }
+        const lowerName = trimmedName.toLowerCase();
+        const forbiddenNames = ['admin', 'administrator', 'user', 'test', 'unknown', 'anonymous', 'null', 'undefined', 'object', 'chair', 'table'];
+        if (forbiddenNames.includes(lowerName)) {
+            setError('Please use your real name.');
+            setLoadingLocal(false);
+            return;
+        }
+
         try {
             await signup(email, password, name);
             navigate('/');
