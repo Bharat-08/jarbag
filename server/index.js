@@ -17,20 +17,10 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: function (origin, callback) {
-        // Allow requests with no origin (like mobile apps or curl requests)
-        if (!origin) return callback(null, true);
-
-        // Define allowed domains (Localhost + DevTunnels)
-        const allowedOrigins = /^https?:\/\/(localhost(:\d+)?|.*\.devtunnels\.ms)$/;
-
-        if (allowedOrigins.test(origin)) {
-            callback(null, true);
-        } else {
-            console.log("Blocked by CORS:", origin);
-            callback(new Error('Not allowed by CORS'));
-        }
-    },
+    origin: [
+        "http://localhost:5173",
+        "https://t9wvxpsl-5173.inc1.devtunnels.ms"
+    ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
