@@ -9,7 +9,7 @@ const MentorRegistration = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        expertise: 'GTO',
+        expertise: [],
     });
     const [file, setFile] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -18,6 +18,17 @@ const MentorRegistration = () => {
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
+
+    const handleExpertiseChange = (e) => {
+        const { value, checked } = e.target;
+        let updatedExpertise = [...formData.expertise];
+        if (checked) {
+            updatedExpertise.push(value);
+        } else {
+            updatedExpertise = updatedExpertise.filter((item) => item !== value);
+        }
+        setFormData({ ...formData, expertise: updatedExpertise });
     };
 
     const handleFileChange = (e) => {
@@ -30,6 +41,12 @@ const MentorRegistration = () => {
         setError('');
         setMessage('');
 
+        if (formData.expertise.length === 0) {
+            setError('Please select at least one area of expertise.');
+            setLoading(false);
+            return;
+        }
+
         if (!file) {
             setError('Please upload a document.');
             setLoading(false);
@@ -39,7 +56,8 @@ const MentorRegistration = () => {
         const data = new FormData();
         data.append('name', formData.name);
         data.append('email', formData.email);
-        data.append('expertise', formData.expertise);
+        // Send as comma-separated string
+        data.append('expertise', formData.expertise.join(', '));
         data.append('document', file);
 
         try {
@@ -62,7 +80,7 @@ const MentorRegistration = () => {
     };
 
     return (
-        <div className="auth-container" style={{ position: 'relative' }}>
+        <div className="auth-container mentor-auth-override" style={{ position: 'relative' }}>
             <div style={{ position: 'absolute', top: 0, left: 0, width: '100%', zIndex: 10 }}>
                 <UnifiedNavbar hideLinks={true} />
             </div>
@@ -97,18 +115,21 @@ const MentorRegistration = () => {
                         />
                     </div>
                     <div className="form-group">
-                        <label style={{ display: 'block', textAlign: 'left', marginBottom: '0.5rem', color: '#94a3b8' }}>Area of Expertise</label>
-                        <select
-                            name="expertise"
-                            className="form-control"
-                            value={formData.expertise}
-                            onChange={handleChange}
-                            style={{ appearance: 'auto' }}
-                        >
-                            <option value="GTO">GTO</option>
-                            <option value="Psychological">Psychological</option>
-                            <option value="1 on 1 Interview Expertise">1 on 1 Interview Expertise</option>
-                        </select>
+                        <label style={{ display: 'block', textAlign: 'left', marginBottom: '0.8rem', color: '#94a3b8' }}>Area of Expertise</label>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                            {['GTO', 'Psychological', '1 on 1 Interview Expertise'].map((option) => (
+                                <label key={option} style={{ display: 'flex', alignItems: 'center', gap: '10px', color: '#ccc', cursor: 'pointer', background: 'rgba(255,255,255,0.05)', padding: '10px', borderRadius: '6px', border: '1px solid #333' }}>
+                                    <input
+                                        type="checkbox"
+                                        value={option}
+                                        checked={formData.expertise.includes(option)}
+                                        onChange={handleExpertiseChange}
+                                        style={{ width: '18px', height: '18px', accentColor: '#fbbf24' }}
+                                    />
+                                    {option}
+                                </label>
+                            ))}
+                        </div>
                     </div>
 
                     <div className="form-group">

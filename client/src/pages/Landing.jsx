@@ -27,7 +27,7 @@ const Landing = () => {
 
     const handleGetStarted = () => {
         if (!user) {
-            navigate('/signup');
+            navigate('/login');
             return;
         }
         if (user.role === 'ADMIN') navigate('/admin-dashboard');
@@ -67,7 +67,7 @@ const Landing = () => {
                             </button>
                             <div className="mentor-join-wrapper">
                                 <button className="btn-join-gold" onClick={() => navigate('/mentor-registration')}>
-                                    Join Us Mentors
+                                    Join as Mentor
                                 </button>
                             </div>
                         </>

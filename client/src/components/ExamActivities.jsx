@@ -2,10 +2,12 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import ExamDetailView from './ExamDetailView';
+import LoadingSpinner from './LoadingSpinner';
 import './ExamActivities.css';
 
 function ExamActivities() {
     const [activities, setActivities] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [selectedExamId, setSelectedExamId] = useState(null);
 
     useEffect(() => {
@@ -15,6 +17,8 @@ function ExamActivities() {
                 setActivities(res.data);
             } catch (err) {
                 console.error("Error fetching activities", err);
+            } finally {
+                setLoading(false);
             }
         };
         fetchActivities();
@@ -38,7 +42,11 @@ function ExamActivities() {
             </div>
 
             <div className="table-container">
-                {activities.length === 0 ? (
+                {loading ? (
+                    <div style={{ height: '400px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                        <LoadingSpinner fullScreen={false} />
+                    </div>
+                ) : activities.length === 0 ? (
                     <div className="empty-state">
                         <p>No exam activities recorded yet.</p>
                     </div>

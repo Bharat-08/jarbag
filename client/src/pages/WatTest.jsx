@@ -203,11 +203,20 @@ export default function WatTest() {
     return (
         <div className="wat-test-container">
             <div className="test-header-bar">
-                <div className="progress-indicator">
-                    <span className="progress-label">Word Progress</span>
-                    <span className="progress-value">
-                        {currentIndex + 1} <span style={{ color: '#64748b' }}>/</span> {testWords.length}
-                    </span>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
+                    <button
+                        onClick={() => navigate('/test-mode')}
+                        className="btn-header-back"
+                        title="Exit Test"
+                    >
+                        ←
+                    </button>
+                    <div className="progress-indicator">
+                        <span className="progress-label">Word Progress</span>
+                        <span className="progress-value">
+                            {currentIndex + 1} <span style={{ color: '#64748b' }}>/</span> {testWords.length}
+                        </span>
+                    </div>
                 </div>
 
                 <div className="timer-box">
@@ -226,16 +235,21 @@ export default function WatTest() {
                 </div>
 
                 <div className="response-area">
-                    <input
-                        type="text"
-                        className="wat-input"
-                        value={response}
-                        onChange={(e) => setResponse(e.target.value)}
-                        onKeyDown={handleKeyDown}
-                        placeholder="Type your thought here..."
-                        autoFocus
-                        autoComplete="off"
-                    />
+                    <div className="input-with-button">
+                        <input
+                            type="text"
+                            className="wat-input"
+                            value={response}
+                            onChange={(e) => setResponse(e.target.value)}
+                            onKeyDown={handleKeyDown}
+                            placeholder="Type your thought here..."
+                            autoFocus
+                            autoComplete="off"
+                        />
+                        <button className="btn-enter" onClick={handleNextWord} title="Submit">
+                            ↵
+                        </button>
+                    </div>
                     <div className="input-hint">
                         <span>Press <strong>Enter</strong> to submit immediately</span>
                         <button className="btn-skip" onClick={handleNextWord}>Skip Word</button>

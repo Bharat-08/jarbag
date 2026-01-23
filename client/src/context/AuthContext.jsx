@@ -1,4 +1,4 @@
-import { createContext, useState, useEffect, useContext } from 'react';
+import { createContext, useState, useEffect, useContext, useMemo, useCallback } from 'react';
 import api, { setAccessToken } from '../api/axios';
 
 const AuthContext = createContext();
@@ -25,21 +25,21 @@ export const AuthProvider = ({ children }) => {
         }
     };
 
-    const login = async (email, password) => {
+    const login = useCallback(async (email, password) => {
         const res = await api.post('/auth/login', { email, password });
         setAccessToken(res.data.accessToken);
         setUser(res.data.user);
         return res.data;
-    };
+    }, []);
 
-    const signup = async (email, password, name, role) => {
+    const signup = useCallback(async (email, password, name, role) => {
         const res = await api.post('/auth/signup', { email, password, name, role });
         setAccessToken(res.data.accessToken);
         setUser(res.data.user);
         return res.data;
-    };
+    }, []);
 
-    const logout = async () => {
+    const logout = useCallback(async () => {
         try {
             await api.post('/auth/logout');
         } catch (e) {
@@ -47,10 +47,19 @@ export const AuthProvider = ({ children }) => {
         }
         setAccessToken(null);
         setUser(null);
-    };
+    }, []);
+
+    // Memoize the value to prevent unnecessary re-renders
+    const value = useMemo(() => ({
+        user,
+        loading,
+        login,
+        signup,
+        logout
+    }), [user, loading, login, signup, logout]);
 
     return (
-        <AuthContext.Provider value={{ user, loading, login, signup, logout }}>
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );

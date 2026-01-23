@@ -19,30 +19,28 @@ export default function TatResult({ evaluation }) {
     if (results.length === 0) return <div className="text-white">No results available.</div>;
 
     const currentResult = results[activeIndex];
+    const score = totalScore || (currentResult && currentResult.individualTotal) || 0;
 
     return (
         <div className="tat-result-container">
             <div className="result-header">
-                <h2>Evaluation Result</h2>
+                <h2>Psychological Assessment Report</h2>
             </div>
 
             {/* Overall Summary Box */}
             <div className="summary-box">
-                <div className="summary-title">Overall Feedback</div>
-                <p className="summary-text">"{summary}"</p>
+                <div className="summary-title">Assessor's Overall Feedback</div>
+                <p className="summary-text">{summary || "No summary provided."}</p>
             </div>
 
             {/* Navigation Tabs (if multiple) */}
             {results.length > 1 && (
-                <div className="flex justify-center gap-2 mb-6">
+                <div className="tabs-container">
                     {results.map((_, idx) => (
                         <button
                             key={idx}
                             onClick={() => setActiveIndex(idx)}
-                            className={`px-4 py-2 rounded-lg text-sm font-bold transition-all ${activeIndex === idx
-                                ? 'bg-yellow-500 text-black shadow-lg'
-                                : 'bg-gray-700 text-gray-300 hover:bg-gray-600'
-                                }`}
+                            className={`tab-btn ${activeIndex === idx ? 'tab-btn-active' : 'tab-btn-inactive'}`}
                         >
                             Story {idx + 1}
                         </button>
@@ -51,14 +49,15 @@ export default function TatResult({ evaluation }) {
             )}
 
             {/* Individual Result Card */}
-            <div className="bg-gray-800 rounded-xl p-6 border border-gray-700 animate-fadeIn">
-                <h3 className="text-xl text-yellow-400 mb-4 font-semibold border-b border-gray-700 pb-2">
-                    Story {activeIndex + 1} Analysis
-                </h3>
+            <div className="story-analysis-card">
+                <div className="story-header">
+                    <h3>Story Analysis {results.length > 1 ? `(${activeIndex + 1}/${results.length})` : ''}</h3>
+                </div>
 
                 {currentResult.response && (
-                    <div className="mb-6 p-4 bg-gray-900 rounded-lg italic text-gray-300">
-                        "<span className="text-white">{currentResult.response}</span>"
+                    <div className="user-response-block">
+                        <span className="response-label">Candidate's Response</span>
+                        <p className="response-content">"{currentResult.response}"</p>
                     </div>
                 )}
 
@@ -66,24 +65,24 @@ export default function TatResult({ evaluation }) {
                     <table className="result-table">
                         <thead>
                             <tr>
-                                <th style={{ width: '25%' }}>Parameter</th>
-                                <th style={{ width: '10%', textAlign: 'center' }}>Score (5)</th>
-                                <th style={{ width: '65%' }}>Remark</th>
+                                <th style={{ width: '30%' }}>Parameter</th>
+                                <th style={{ width: '10%', textAlign: 'center' }}>Score</th>
+                                <th style={{ width: '60%' }}>Assessor's Remark</th>
                             </tr>
                         </thead>
                         <tbody>
                             {(currentResult.scores || []).map((item, index) => (
                                 <tr key={index}>
-                                    <td className="param-name">
-                                        {item.parameter}
+                                    <td>
+                                        <span className="param-name">{item.parameter}</span>
                                     </td>
-                                    <td style={{ textAlign: 'center' }}>
-                                        <span className={`score-badge ${getScoreClass(item.score)}`}>
+                                    <td className="score-cell">
+                                        <span className={`score-badge-new ${getScoreClass(item.score)}`}>
                                             {item.score}
                                         </span>
                                     </td>
-                                    <td className="param-remark">
-                                        {item.remark}
+                                    <td>
+                                        <span className="param-remark">{item.remark}</span>
                                     </td>
                                 </tr>
                             ))}
@@ -93,11 +92,12 @@ export default function TatResult({ evaluation }) {
             </div>
 
             {/* Footer */}
-            <div className="result-footer mt-6">
-                <div className="total-score-label">Overall Performance (Avg)</div>
-                <div>
-                    <span className="total-score-value">{totalScore || result.individualTotal || 0}</span>
-                    <span className="total-max"> / 80</span>
+            <div className="report-footer">
+                <div className="total-score-box">
+                    <span className="total-label">Total Proficiency Score</span>
+                    <div className="total-value-row">
+                        {score}<span className="total-max">/80</span>
+                    </div>
                 </div>
             </div>
         </div>

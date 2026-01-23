@@ -14,6 +14,7 @@ const AdminDashboard = () => {
     const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState('dashboard');
     const [stats, setStats] = useState({ totalStudents: 0, totalMentors: 0, contentCount: 0 });
+    const [loadingStats, setLoadingStats] = useState(true);
 
     useEffect(() => {
         const fetchStats = async () => {
@@ -27,6 +28,8 @@ const AdminDashboard = () => {
                 });
             } catch (err) {
                 console.error("Failed to load dashboard stats", err);
+            } finally {
+                setLoadingStats(false);
             }
         };
         fetchStats();
@@ -48,7 +51,7 @@ const AdminDashboard = () => {
                         </div>
 
                         <div className="dashboard-widgets">
-                            <StatsCards stats={stats} />
+                            <StatsCards stats={stats} loading={loadingStats} />
 
                             {/* Quick Actions */}
                             <div className="quick-actions">

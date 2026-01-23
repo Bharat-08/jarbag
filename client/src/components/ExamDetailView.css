@@ -153,12 +153,6 @@
     font-weight: 600;
 }
 
-.analysis-pending {
-    color: #f87171;
-    font-style: italic;
-    font-size: 0.9rem;
-}
-
 .score-grid-layout {
     display: grid;
     grid-template-columns: repeat(2, 1fr);

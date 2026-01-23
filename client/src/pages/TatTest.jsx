@@ -247,8 +247,32 @@ export default function TatTest() {
                         <p className="text-center text-gray-400">No evaluation generated.</p>
                     )}
 
-                    <div className="text-center mt-8">
-                        <button className="btn-primary-tat" style={{ maxWidth: '300px' }} onClick={() => navigate('/candidate-home')}>
+                    <div className="text-center mt-12 pb-12">
+                        <button
+                            onClick={() => navigate('/candidate-home')}
+                            style={{
+                                background: 'linear-gradient(135deg, #f59e0b 0%, #d97706 100%)',
+                                color: '#111827',
+                                padding: '1rem 3rem',
+                                fontSize: '1.1rem',
+                                fontWeight: '700',
+                                borderRadius: '12px',
+                                border: 'none',
+                                cursor: 'pointer',
+                                boxShadow: '0 4px 6px -1px rgba(245, 158, 11, 0.3), 0 10px 15px -3px rgba(245, 158, 11, 0.2)',
+                                transition: 'transform 0.2s, box-shadow 0.2s',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.05em'
+                            }}
+                            onMouseEnter={e => {
+                                e.target.style.transform = 'translateY(-2px)';
+                                e.target.style.boxShadow = '0 10px 25px -5px rgba(245, 158, 11, 0.4)';
+                            }}
+                            onMouseLeave={e => {
+                                e.target.style.transform = 'translateY(0)';
+                                e.target.style.boxShadow = '0 4px 6px -1px rgba(245, 158, 11, 0.3), 0 10px 15px -3px rgba(245, 158, 11, 0.2)';
+                            }}
+                        >
                             Back to Dashboard
                         </button>
                     </div>

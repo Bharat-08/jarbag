@@ -1,8 +1,17 @@
 // src/components/StatsCards.jsx
-import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import LoadingSpinner from './LoadingSpinner';
 import './StatsCards.css';
 
-function StatsCards({ stats }) {
+function StatsCards({ stats, loading }) {
+    const navigate = useNavigate();
+
+    if (loading) return (
+        <div style={{ minHeight: '200px', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+            <LoadingSpinner fullScreen={false} />
+        </div>
+    );
+
     // Destructure with default values to prevent crashes if data isn't loaded yet
     const { totalStudents = 0, totalMentors = 0, contentCount = 0, subscribedStudents = 0 } = stats || {};
 

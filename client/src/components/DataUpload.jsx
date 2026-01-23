@@ -4,13 +4,28 @@ import './DataUpload.css';
 
 const DataUpload = () => {
     const [activeTab, setActiveTab] = useState('tat'); // 'tat' or 'wat'
-    const [tatData, setTatData] = useState({ url: '', description1: '', description2: '', description3: '' });
+    const [tatData, setTatData] = useState({ url: '', themes: [''] });
     const [watText, setWatText] = useState('');
     const [message, setMessage] = useState({ type: '', text: '' });
     const [loading, setLoading] = useState(false);
 
     const handleTatChange = (e) => {
         setTatData({ ...tatData, [e.target.name]: e.target.value });
+    };
+
+    const handleThemeChange = (index, value) => {
+        const newThemes = [...tatData.themes];
+        newThemes[index] = value;
+        setTatData({ ...tatData, themes: newThemes });
+    };
+
+    const handleAddTheme = () => {
+        setTatData({ ...tatData, themes: [...tatData.themes, ''] });
+    };
+
+    const handleRemoveTheme = (index) => {
+        const newThemes = tatData.themes.filter((_, i) => i !== index);
+        setTatData({ ...tatData, themes: newThemes });
     };
 
     const handleUploadTat = async () => {
@@ -20,9 +35,15 @@ const DataUpload = () => {
         }
         setLoading(true);
         try {
-            await api.post('/admin/upload/tat', tatData);
+            // Filter empty themes before sending
+            const validThemes = tatData.themes.filter(t => t.trim() !== '');
+
+            await api.post('/admin/upload/tat', {
+                url: tatData.url,
+                descriptions: validThemes
+            });
             setMessage({ type: 'success', text: 'TAT Image uploaded successfully!' });
-            setTatData({ url: '', description1: '', description2: '', description3: '' });
+            setTatData({ url: '', themes: [''] });
         } catch (error) {
             setMessage({ type: 'error', text: 'Failed to upload image. Please try again.' });
         } finally {
@@ -97,35 +118,35 @@ const DataUpload = () => {
                             </div>
                         )}
 
-                        <div className="form-group">
-                            <label>Context / Theme 1 (Optional)</label>
-                            <input
-                                type="text"
-                                name="description1"
-                                value={tatData.description1}
-                                onChange={handleTatChange}
-                                placeholder="e.g. Leadership under pressure"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Context / Theme 2 (Optional)</label>
-                            <input
-                                type="text"
-                                name="description2"
-                                value={tatData.description2}
-                                onChange={handleTatChange}
-                                placeholder="e.g. Group dynamics"
-                            />
-                        </div>
-                        <div className="form-group">
-                            <label>Context / Theme 3 (Optional)</label>
-                            <input
-                                type="text"
-                                name="description3"
-                                value={tatData.description3}
-                                onChange={handleTatChange}
-                                placeholder="e.g. Outdoor activity"
-                            />
+                        <div className="themes-section">
+                            <label>Context / Themes (Optional)</label>
+                            {tatData.themes.map((theme, index) => (
+                                <div key={index} className="theme-input-group" style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+                                    <input
+                                        type="text"
+                                        value={theme}
+                                        onChange={(e) => handleThemeChange(index, e.target.value)}
+                                        placeholder={`Theme ${index + 1} (e.g. Leadership)`}
+                                        style={{ flex: 1 }}
+                                    />
+                                    {tatData.themes.length > 1 && (
+                                        <button
+                                            className="remove-btn"
+                                            onClick={() => handleRemoveTheme(index)}
+                                            style={{ background: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', padding: '0 10px', cursor: 'pointer' }}
+                                        >
+                                            ✕
+                                        </button>
+                                    )}
+                                </div>
+                            ))}
+                            <button
+                                className="add-btn"
+                                onClick={handleAddTheme}
+                                style={{ background: 'transparent', border: '1px dashed #4b5563', color: '#9ca3af', width: '100%', padding: '8px', borderRadius: '4px', cursor: 'pointer', marginBottom: '1rem' }}
+                            >
+                                + Add another theme
+                            </button>
                         </div>
 
                         <button className="upload-btn primary" onClick={handleUploadTat} disabled={loading}>

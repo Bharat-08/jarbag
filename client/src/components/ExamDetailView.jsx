@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import LoadingSpinner from './LoadingSpinner';
 import './ExamDetailView.css';
 
 const ExamDetailView = ({ examId, examData, onClose }) => {
@@ -29,7 +30,7 @@ const ExamDetailView = ({ examId, examData, onClose }) => {
         }
     }, [examId, examData]);
 
-    if (loading) return <div className="detail-modal-overlay"><div className="detail-loading">Loading details...</div></div>;
+    if (loading) return <div className="detail-modal-overlay"><LoadingSpinner fullScreen={false} /></div>;
     if (!exam) return null;
 
     const { user, examName, testType, score, total, percentage, date, responseDetails } = exam;
@@ -45,14 +46,7 @@ const ExamDetailView = ({ examId, examData, onClose }) => {
     const getScoreColor = (pct) => {
         if (pct >= 80) return 'text-green-400 border-green-400';
         if (pct >= 60) return 'text-yellow-400 border-yellow-400';
-        if (pct >= 60) return 'text-yellow-400 border-yellow-400';
         return 'text-red-400 border-red-400';
-    };
-
-    const hasValidScores = (scores) => {
-        if (!scores) return false;
-        if (Array.isArray(scores)) return scores.length > 0;
-        return Object.keys(scores).length > 0;
     };
 
     return (
@@ -80,27 +74,28 @@ const ExamDetailView = ({ examId, examData, onClose }) => {
                                         <h4>Story {index + 1}</h4>
                                         <p className="story-text">{item.response}</p>
 
-                                        <div className="mini-scores-grid mt-4">
-                                            <h5 className="analysis-header">Psychological Analysis:</h5>
-                                            {hasValidScores(item.scores) ? (
+                                        {/* Render AI Scores if available */}
+                                        {item.scores ? (
+                                            <div className="mini-scores-grid mt-4">
+                                                <h5 className="analysis-header">Psychological Analysis:</h5>
                                                 <div className="score-grid-layout">
-                                                    {(Array.isArray(item.scores) ? item.scores : Object.entries(item.scores).map(([k, v]) => ({ parameter: k, score: v }))).map((entry) => {
-                                                        const trait = entry.parameter || entry.trait; // Handle varying key names
-                                                        const val = entry.score;
-                                                        return val > 0 && (
+                                                    {Object.entries(item.scores).map(([trait, val]) => (
+                                                        val > 0 && (
                                                             <div key={trait} className="score-row">
                                                                 <span className="trait-name">{trait}</span>
                                                                 <span className={`trait-val ${val >= 4 ? 'score-high' : val >= 3 ? 'score-mid' : 'score-low'}`}>
                                                                     {val}/5
                                                                 </span>
                                                             </div>
-                                                        );
-                                                    })}
+                                                        )
+                                                    ))}
                                                 </div>
-                                            ) : (
-                                                <div className="analysis-pending">Analysis Not Completed</div>
-                                            )}
-                                        </div>
+                                            </div>
+                                        ) : (
+                                            <div className="analysis-pending mt-4 text-gray-500 italic text-sm">
+                                                Analysis pending or unavailable.
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             ))}
@@ -123,7 +118,7 @@ const ExamDetailView = ({ examId, examData, onClose }) => {
                                             <td className="wat-word">{item.word || item.trigger}</td>
                                             <td className="wat-sentence">{item.response}</td>
                                             <td className="wat-analysis text-xs">
-                                                {hasValidScores(item.scores) ? (
+                                                {item.scores ? (
                                                     <div className="wat-badges-container">
                                                         {Object.entries(item.scores).map(([trait, val]) => (
                                                             val >= 3 && ( // Only show significant traits
@@ -134,7 +129,7 @@ const ExamDetailView = ({ examId, examData, onClose }) => {
                                                         ))}
                                                     </div>
                                                 ) : (
-                                                    <span className="analysis-pending">Analysis Not Completed</span>
+                                                    <span className="text-gray-500 italic">Analysis unavailable</span>
                                                 )}
                                             </td>
                                         </tr>

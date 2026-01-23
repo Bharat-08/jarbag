@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
 import './MentorList.css';
+import LoadingSpinner from './LoadingSpinner';
 import MentorProfileModal from './MentorProfileModal';
 
 const MentorList = () => {
@@ -39,7 +40,13 @@ const MentorList = () => {
         return true;
     });
 
-    if (loading) return <div className="mentor-loading">Loading mentors...</div>;
+
+
+    if (loading) return (
+        <div style={{ height: '60vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+            <LoadingSpinner fullScreen={false} />
+        </div>
+    );
     if (error) return <div className="mentor-error">{error}</div>;
 
     return (
@@ -48,7 +55,7 @@ const MentorList = () => {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                     <h2 className="section-title">Mentor Directory</h2>
                     <div className="filter-controls">
-                        {['All', 'GTO', 'Psychology', 'Interview', 'PI & Comm'].map(cat => (
+                        {['All', 'GTO', 'Psychology', 'Interview'].map(cat => (
                             <button
                                 key={cat}
                                 className={`filter-btn ${filter === cat ? 'active' : ''}`}

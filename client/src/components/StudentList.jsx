@@ -1,6 +1,7 @@
 // src/components/StudentList.jsx
 import React, { useEffect, useState } from 'react';
 import api from '../api/axios';
+import LoadingSpinner from './LoadingSpinner';
 import './StudentList.css';
 
 function StudentList() {
@@ -30,8 +31,13 @@ function StudentList() {
     });
 
     // 3. Add a loading check in the render
+    // 3. Add a loading check in the render
     if (loading) {
-        return <div style={{ padding: '20px', color: '#fff', textAlign: 'center' }}>Loading students...</div>;
+        return (
+            <div style={{ height: '60vh', display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
+                <LoadingSpinner fullScreen={false} />
+            </div>
+        );
     }
 
     return (

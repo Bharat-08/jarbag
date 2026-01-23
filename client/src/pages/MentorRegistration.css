@@ -36,16 +36,26 @@ select.form-control {
 
 /* File Input tweaks */
 input[type="file"]::file-selector-button {
-    background: #333;
-    color: #fbbf24;
-    border: 1px solid #fbbf24;
-    padding: 0.3rem 0.8rem;
+    background: #ffffff;
+    color: #000000;
+    border: none;
+    padding: 4px 8px;
     border-radius: 4px;
     cursor: pointer;
     margin-right: 1rem;
-    transition: background 0.2s;
+    transition: all 0.2s;
+    font-size: 0.75rem;
+    font-weight: 600;
 }
 
 input[type="file"]::file-selector-button:hover {
     background: #444;
+}
+
+.mentor-auth-override {
+    padding-top: 120px;
+    height: auto;
+    min-height: 100vh;
+    align-items: flex-start;
+    padding-bottom: 50px;
 }

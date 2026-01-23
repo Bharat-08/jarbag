@@ -6,7 +6,7 @@ import './WatInstructions.css';
 
 export default function WatInstructions() {
     const navigate = useNavigate();
-    const [numWords, setNumWords] = useState(60);
+    const [numWords, setNumWords] = useState(2);
     const [maxWords, setMaxWords] = useState(100); // Default fallback
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState('');
@@ -18,7 +18,7 @@ export default function WatInstructions() {
                 if (res.data && Array.isArray(res.data)) {
                     setMaxWords(res.data.length);
                     // Adjust default if db has fewer words
-                    if (res.data.length < 60) setNumWords(res.data.length);
+                    if (res.data.length < 2) setNumWords(res.data.length);
                 }
             } catch (err) {
                 console.error("Failed to fetch WAT words count", err);
