@@ -19,7 +19,7 @@ app.use(cookieParser());
 app.use(cors({
     origin: [
         "http://localhost:5173",
-        "https://t9wvxpsl-5173.inc1.devtunnels.ms"
+        "https://t9wvxspl-5173.inc1.devtunnels.ms"
     ],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
