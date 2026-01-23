@@ -93,6 +93,9 @@ router.post('/register', upload, async (req, res) => {
 // List Mentors (Public or Candidate)
 router.get('/list', async (req, res) => {
     try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+
         const mentors = await prisma.user.findMany({
             where: { role: 'MENTOR' },
             select: {
@@ -106,10 +109,29 @@ router.get('/list', async (req, res) => {
                 reviewCount: true,
                 price: true,
                 bio: true,
-                profileImage: true
+                profileImage: true,
+                mentorshipSlots: {
+                    where: {
+                        isBooked: false,
+                        date: {
+                            gte: today
+                        }
+                    },
+                    select: {
+                        id: true
+                    }
+                }
             }
         });
-        res.json({ mentors });
+
+        // Transform to add hasSlots flag and remove the raw slots array to keep response light
+        const mentorsWithAvailability = mentors.map(mentor => ({
+            ...mentor,
+            hasSlots: mentor.mentorshipSlots.length > 0,
+            mentorshipSlots: undefined // Remove the array from the final response
+        }));
+
+        res.json({ mentors: mentorsWithAvailability });
     } catch (error) {
         console.error("Fetch Mentors Error:", error);
         res.status(500).json({ message: "Failed to fetch mentors" });

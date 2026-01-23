@@ -38,13 +38,7 @@ export default function MentorListing() {
     const fetchMentors = async () => {
         try {
             const res = await api.get('/mentors/list');
-            // MOCKING AVAILABILITY: purely for frontend demo since backend doesn't send it yet
-            // Deterministic mock: Odd IDs have slots, Even IDs don't (or based on some hash)
-            const mentorsWithSlots = (res.data.mentors || []).map(m => ({
-                ...m,
-                hasSlots: (m.id % 3 !== 0) // 2 out of 3 have slots
-            }));
-            setMentors(mentorsWithSlots);
+            setMentors(res.data.mentors || []);
         } catch (err) {
             console.error("Failed to load mentors", err);
         } finally {
