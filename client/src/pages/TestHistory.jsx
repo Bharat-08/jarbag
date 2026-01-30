@@ -34,9 +34,9 @@ export default function TestHistory() {
 
             <div className="test-mode-container">
                 <div style={{ display: 'flex', alignItems: 'center', marginBottom: '40px', gap: '20px' }}>
-                    <button onClick={() => navigate(-1)} className="btn-back-history">
+                    {/* <button onClick={() => navigate(-1)} className="btn-back-history">
                         ← Back
-                    </button>
+                    </button> */}
                     <h2 className="page-heading" style={{ margin: 0 }}>TEST HISTORY</h2>
                 </div>
 

@@ -87,7 +87,8 @@ const MentorRegistration = () => {
         data.append('document', file);
 
         try {
-            const res = await axios.post('http://localhost:3000/api/mentors/register', data, {
+            const baseUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+            const res = await axios.post(`${baseUrl}/mentors/register`, data, {
                 headers: {
                     'Content-Type': 'multipart/form-data',
                 },

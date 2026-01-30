@@ -151,7 +151,7 @@ const Landing = () => {
             <section id="about" className="landing-section">
                 <div className="section-content split-layout">
                     <div className="text-block">
-                        <h2 className="section-heading">Who We Are<span className="dot-accent">.</span></h2>
+                        <h2 className="section-heading">Who We Are<span className="dot-accent">?</span></h2>
                         <p className="text-body">
                             We are a dedicated team of veterans and experts committed to guiding the next generation of officers. ShieldForce provides a disciplined, structured environment to prepare for SSB interviews and written exams.
                         </p>
@@ -171,7 +171,7 @@ const Landing = () => {
 
             {/* 4. Features / Offer Section - Cards matched to Dashboard */}
             <section id="offer" className="landing-section">
-                <h2 className="section-heading center-text">What We Offer<span className="dot-accent">.</span></h2>
+                <h2 className="section-heading center-text">What We Offer<span className="dot-accent">?</span></h2>
                 <p className="section-subheading center-text">Comprehensive tools designed for your success.</p>
 
                 <div className="features-grid">

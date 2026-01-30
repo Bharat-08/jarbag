@@ -24,14 +24,40 @@ const Login = () => {
             const response = await login(email, password);
 
             // LOGIC CHANGE: If 'from' exists, go back there. Else go to default dashboard.
-            if (from) {
+            // LOGIC CHANGE: If 'from' exists, go back there ONLY if authorized.
+            let validRedirect = false;
+            // 'from' is a location object, so we must check from.pathname
+            const fromPath = from?.pathname || '';
+
+            if (fromPath) {
+                // Prevent Candidates from going to Mentor/Admin pages
+                if (response.user.role === 'CANDIDATE' && !fromPath.includes('mentor') && !fromPath.includes('admin')) {
+                    validRedirect = true;
+                }
+                // Prevent Mentors from going to Admin pages
+                else if (response.user.role === 'MENTOR' && !fromPath.includes('admin')) {
+                    validRedirect = true;
+                }
+                // Admin: Only use 'from' if it's an specific Admin page (deep link). Otherwise force Dashboard.
+                else if (response.user.role === 'ADMIN') {
+                    if (fromPath.includes('/admin')) {
+                        validRedirect = true;
+                    } else {
+                        validRedirect = false; // Force default dashboard redirect
+                    }
+                }
+            }
+
+            if (from && validRedirect) {
                 navigate(from, { replace: true });
             } else {
                 // Default Routing based on Role
                 if (response.user.role === 'ADMIN') {
                     navigate('/admin-dashboard');
                 } else if (response.user.role === 'CANDIDATE') {
-                    navigate('/candidate-home'); // Updated to home dashboard instead of Landing
+                    navigate('/candidate-home');
+                } else if (response.user.role === 'MENTOR') {
+                    navigate('/mentor-dashboard');
                 } else {
                     navigate('/news');
                 }

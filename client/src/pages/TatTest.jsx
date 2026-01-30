@@ -225,7 +225,7 @@ export default function TatTest() {
                 <UnifiedNavbar />
                 <div className="setup-wrapper">
                     <div className="loader-container">
-                        <div className="loading-text">Assessing Profile...</div>
+                        <div className="loading-text">fetching scores...</div>
                         <div className="loading-sub">Analyzing your psychological responses</div>
                     </div>
                 </div>

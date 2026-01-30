@@ -28,6 +28,11 @@ const UnifiedNavbar = ({ hideLinks = false }) => {
         }
     };
 
+    const handleLogout = async () => {
+        await logout();
+        navigate('/login', { replace: true }); // Explicit navigation to clear history state
+    };
+
     // Close dropdown when clicking outside
     React.useEffect(() => {
         function handleClickOutside(event) {
@@ -130,7 +135,7 @@ const UnifiedNavbar = ({ hideLinks = false }) => {
                                     </div>
 
                                     <div className="unified-dropdown-footer">
-                                        <button className="unified-btn-logout-red" onClick={logout}>
+                                        <button className="unified-btn-logout-red" onClick={handleLogout}>
                                             Logout
                                         </button>
                                     </div>

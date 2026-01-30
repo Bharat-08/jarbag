@@ -38,6 +38,7 @@ export default function MentorListing() {
     const fetchMentors = async () => {
         try {
             const res = await api.get('/mentors/list');
+            // console.log("MENTORS", res.data.mentors);
             setMentors(res.data.mentors || []);
         } catch (err) {
             console.error("Failed to load mentors", err);
@@ -80,6 +81,7 @@ export default function MentorListing() {
 
     const toggleSlotFilter = () => {
         setFilters(prev => ({ ...prev, slotsAvailable: !prev.slotsAvailable }));
+        // console.log(filters.slotsAvailable);
     };
 
     const filteredMentors = mentors.filter(mentor => {

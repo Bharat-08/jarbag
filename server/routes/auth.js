@@ -145,7 +145,7 @@ router.post('/signup', async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax"
         });
 
         res.status(201).json({
@@ -161,7 +161,7 @@ router.post('/signup', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
     try {
-        console.log("Login Request Body:", req.body);
+
         const { email, password } = req.body;
 
         const user = await prisma.user.findUnique({ where: { email } });
@@ -188,7 +188,7 @@ router.post('/login', async (req, res) => {
             httpOnly: true,
             secure: process.env.NODE_ENV === 'production',
             maxAge: REFRESH_TOKEN_EXPIRY_DAYS * 24 * 60 * 60 * 1000,
-            sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax'
+            sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax"
         });
 
         res.status(200).json({
@@ -210,7 +210,11 @@ router.post('/logout', async (req, res) => {
         } catch (e) { }
     }
 
-    res.clearCookie('refreshToken');
+    res.clearCookie('refreshToken', {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: process.env.NODE_ENV === 'production' ? "none" : "lax"
+    });
     res.status(200).json({ message: 'Logged out successfully' });
 });
 

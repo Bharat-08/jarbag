@@ -33,6 +33,7 @@ import MentorProfile from './pages/MentorProfile';
 import AdminDashboard from './pages/AdminDashboard';
 
 // UPDATED: Now capturing location to enable "Return to previous page"
+// UPDATED: Now capturing location to enable "Return to previous page"
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   const location = useLocation(); // Capture where the user is trying to go
@@ -43,7 +44,7 @@ const ProtectedRoute = ({ children }) => {
 
   if (!user) {
     // Redirect to login, but save the current location in 'state.from'
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
@@ -58,11 +59,52 @@ const AdminRoute = ({ children }) => {
   }
 
   if (!user || user.role !== 'ADMIN') {
-    return <Navigate to="/login" state={{ from: location }} replace />;
+    return <Navigate to="/login" replace />;
   }
 
   return children;
 };
+
+const MentorRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user || user.role !== 'MENTOR') {
+    // If user is logged in but not a mentor, send them to their home instead of login (avoids loop)
+    if (user) {
+      if (user.role === 'ADMIN') return <Navigate to="/admin-dashboard" replace />;
+      return <Navigate to="/candidate-home" replace />;
+    }
+    return <Navigate to="/login" replace />;
+  }
+
+  return children;
+};
+
+const CandidateRoute = ({ children }) => {
+  const { user, loading } = useAuth();
+  const location = useLocation();
+
+  if (loading) {
+    return <LoadingSpinner />;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // Optional: If strict candidate-only pages exist, check role. 
+  // For now, Mentors/Admins might check candidate view, so we leave it open to "Authorized Users"
+  // or restrict if needed. Let's keep it open for all auth users for now, or strict?
+  // User asked for fix where Candidate sees Mentor page.
+  // Mentor seeing Candidate page is usually allowed (viewing content).
+  return children;
+};
+
 
 const PublicOnlyRoute = ({ children }) => {
   const { user, loading } = useAuth();
@@ -73,10 +115,6 @@ const PublicOnlyRoute = ({ children }) => {
   }
 
   if (user) {
-    if (location.state?.from) {
-      return <Navigate to={location.state.from} replace />;
-    }
-
     if (user.role === 'ADMIN') {
       return <Navigate to="/admin-dashboard" replace />;
     }
@@ -123,7 +161,7 @@ function App() {
           <Route path="/mentor-listing/mentor/:id" element={<ProtectedRoute><MentorProfile /></ProtectedRoute>} />
 
           {/* Mentor Routes */}
-          <Route path="/mentor-dashboard" element={<ProtectedRoute><MentorDashboard /></ProtectedRoute>} />
+          <Route path="/mentor-dashboard" element={<MentorRoute><MentorDashboard /></MentorRoute>} />
 
           {/* Test Mode Routes */}
           <Route path="/test-mode" element={<ProtectedRoute><TestMode /></ProtectedRoute>} />

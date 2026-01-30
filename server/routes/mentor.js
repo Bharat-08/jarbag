@@ -30,8 +30,8 @@ const transporter = nodemailer.createTransport({
     port: 465,
     secure: true,
     auth: {
-        user: "imohdammar621@gmail.com", // Keeping user provided credential
-        pass: "epoyurgbiyqilnvt"
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
     }
 });
 
@@ -68,7 +68,7 @@ router.post('/register', upload, async (req, res) => {
 
         // Send Email
         await transporter.sendMail({
-            from: "imohdammar621@gmail.com",
+            from: process.env.EMAIL_USER,
             to: email,
             subject: "Welcome to Team Platform - Mentor Verification",
             text:
@@ -232,7 +232,7 @@ router.get('/courses/:mentorId', async (req, res) => {
 router.get('/profile/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        console.log(`[DEBUG] Fetching profile for ID: ${id} (Type: ${typeof id})`);
+
 
         const mentor = await prisma.user.findUnique({
             where: { id: parseInt(id) },
@@ -251,10 +251,10 @@ router.get('/profile/:id', async (req, res) => {
                 role: true // Make sure we select role to check it!
             }
         });
-        console.log(`[DEBUG] Found mentor:`, mentor);
+
 
         if (!mentor || mentor.role !== 'MENTOR') {
-            console.log(`[DEBUG] Mentor check failed. Role: ${mentor?.role}`);
+
             return res.status(404).json({ message: "Mentor not found" });
         }
 

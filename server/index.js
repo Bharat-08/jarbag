@@ -17,7 +17,13 @@ app.use(express.json());
 app.use(cookieParser());
 
 app.use(cors({
-    origin: "*",
+    origin: [
+        "http://localhost:5173",
+        process.env.CLIENT_URL,
+        "https://t9wvxspl-5173.inc1.devtunnels.ms",
+        "https://darwin-farouche-hans.ngrok-free.dev",
+        "*" // Consider removing this wildcard in production if strict security is needed
+    ].filter(Boolean),
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']

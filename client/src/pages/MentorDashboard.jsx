@@ -81,7 +81,33 @@ export default function MentorDashboard() {
         }
     };
 
-    // ... (rest of component handles)
+    const handleCreateCourse = async (e) => {
+        e.preventDefault();
+        try {
+            await api.post('/mentors/courses', {
+                mentorId: user.id,
+                title: courseTitle,
+                description: courseDesc,
+                videoUrl,
+                price: coursePrice
+            });
+            alert("Course Uploaded Successfully!");
+            fetchCourses();
+            // Reset form
+            setCourseTitle('');
+            setCourseDesc('');
+            setVideoUrl('');
+            setCoursePrice(999);
+        } catch (err) {
+            console.error(err);
+            alert("Failed to create course");
+        }
+    };
+
+    const handleLogout = async () => {
+        await logout();
+        navigate('/');
+    };
 
     const handleDeleteSlot = async (slotId) => {
         if (!window.confirm("Are you sure you want to delete this slot?")) return;
@@ -98,8 +124,17 @@ export default function MentorDashboard() {
     return (
         <div className="dashboard-container">
             <header className="dashboard-header">
-                <h1>Welcome, {user?.name} 🎓</h1>
-                <button onClick={logout} className="btn-logout">Logout</button>
+                <div className="header-brand">
+                    <span className="brand-icon">🛡️</span>
+                    <h1>ShieldForce <span className="mentor-badge">Mentor</span></h1>
+                </div>
+                <div className="header-user">
+                    <span className="welcome-text">Welcome, {user?.name}</span>
+                    <button onClick={handleLogout} className="btn-logout" title="Sign out">
+                        <span>Logout</span>
+                        <span className="icon-exit">→</span>
+                    </button>
+                </div>
             </header>
 
             <div className="dashboard-tabs">
@@ -151,7 +186,7 @@ export default function MentorDashboard() {
 
                         <div className="slots-list">
                             <h3>Your Slots</h3>
-                            {slots.length === 0 ? <p>No slots added yet.</p> : (
+                            {slots.length === 0 ? <p className="no-data-msg">No slots added yet.</p> : (
                                 <ul>
                                     {slots.map(slot => (
                                         <li key={slot.id} className="slot-item">
@@ -190,7 +225,7 @@ export default function MentorDashboard() {
                             </div>
                             <div className="form-group">
                                 <label>Description</label>
-                                <textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} rows="3" placeholder="Brief details..."></textarea>
+                                <textarea value={courseDesc} onChange={e => setCourseDesc(e.target.value)} rows="3" placeholder="Brief details about the curriculum..."></textarea>
                             </div>
                             <div className="form-group">
                                 <label>Video Link (Vimeo/YouTube)</label>
@@ -205,7 +240,7 @@ export default function MentorDashboard() {
 
                         <div className="courses-list">
                             <h3>Your Courses</h3>
-                            {courses.length === 0 ? <p>No courses uploaded.</p> : (
+                            {courses.length === 0 ? <p className="no-data-msg">No courses uploaded.</p> : (
                                 <div className="course-cards-mini">
                                     {courses.map(course => (
                                         <div key={course.id} className="course-card-mini">
